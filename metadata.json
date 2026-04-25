@@ -1,0 +1,12 @@
+{
+  "name": "CrisisLink",
+  "description": "Hotel emergency coordination platform with real-time tracking, AI incident analysis, and responder dispatch.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "Real-time alerts",
+    "AI-powered incident classification",
+    "Emergency services coordination"
+  ]
+}
