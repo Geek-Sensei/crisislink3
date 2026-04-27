@@ -137,6 +137,20 @@ export default function GuestCheckin() {
           </button>
         </div>
       </motion.form>
+
+      <div className="mt-8 p-6 bg-white/5 rounded-2xl border border-white/5 max-w-md w-full">
+        <p className="text-[10px] font-black text-text-tertiary uppercase tracking-widest mb-4">Prototype Credentials</p>
+        <div className="space-y-2">
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-text-secondary">Hotel Code:</span>
+            <code className="text-[#0EA5E9] font-mono">GRAND1</code>
+          </div>
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-text-secondary">Testing:</span>
+            <span className="text-text-tertiary">Any name/room works</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

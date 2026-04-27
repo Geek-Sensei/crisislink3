@@ -8,6 +8,9 @@ import { Shield, Navigation, MessageSquare, MapPin, X, CheckCircle2, Send, Zap, 
 import { formatRelative } from 'date-fns';
 import { formatResponderMessage } from '../services/geminiService';
 import ConferenceBridge from '../components/ConferenceBridge';
+import RealTimeMap from '../components/RealTimeMap';
+import MobileNav from '../components/MobileNav';
+import BlueprintView from '../components/BlueprintView';
 
 export default function ResponderAlert() {
   const { alertId } = useParams();
@@ -18,17 +21,30 @@ export default function ResponderAlert() {
   const [showChat, setShowChat] = useState(false);
   const [showConference, setShowConference] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lng: number; eta?: string } | null>(null);
+  const movementIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
   const msgEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    axios.get(`/api/alerts/${alertId}`).then(res => setAlert(res.data));
+    axios.get(`/api/alerts/${alertId}`).then(res => {
+      setAlert(res.data);
+      if (res.data.status === 'accepted') {
+        startMovementSimulation(res.data);
+      }
+    });
     axios.get(`/api/messages?alertId=${alertId}`).then(res => setMessages(res.data));
 
     socket.emit('join_alert_room', { alertId });
     
     socket.on('alert_updated', (updated) => {
-      if (updated._id === alertId) setAlert(updated);
+      if (updated._id === alertId) {
+        setAlert(updated);
+        if (updated.status === 'accepted') {
+          startMovementSimulation(updated);
+        } else if (updated.status === 'on_scene' || updated.status === 'resolved') {
+          if (movementIntervalRef.current) clearInterval(movementIntervalRef.current);
+        }
+      }
     });
 
     socket.on('location_update', (data) => {
@@ -41,6 +57,7 @@ export default function ResponderAlert() {
 
     socket.on('alert_on_scene', () => {
       setAlert((prev: any) => ({ ...prev, status: 'on_scene' }));
+      if (movementIntervalRef.current) clearInterval(movementIntervalRef.current);
     });
 
     socket.on('conference_started', () => {
@@ -58,8 +75,47 @@ export default function ResponderAlert() {
       socket.off('alert_on_scene');
       socket.off('conference_started');
       socket.off('conference_ended');
+      if (movementIntervalRef.current) clearInterval(movementIntervalRef.current);
     };
   }, [alertId]);
+
+  const startMovementSimulation = (alertData: any) => {
+    if (movementIntervalRef.current) return;
+    if (!alertData.hotelId) return;
+    
+    // Start from a bit away from hotel
+    let currentLat = (alertData.hotelId.lat || 13.0827) + 0.005;
+    let currentLng = (alertData.hotelId.lng || 80.2707) + 0.005;
+    const targetLat = alertData.hotelId.lat || 13.0827;
+    const targetLng = alertData.hotelId.lng || 80.2707;
+    
+    movementIntervalRef.current = setInterval(() => {
+      const distLat = targetLat - currentLat;
+      const distLng = targetLng - currentLng;
+      
+      if (Math.abs(distLat) < 0.0001 && Math.abs(distLng) < 0.0001) {
+        if (movementIntervalRef.current) clearInterval(movementIntervalRef.current);
+        return;
+      }
+
+      currentLat += distLat * 0.1;
+      currentLng += distLng * 0.1;
+      
+      const etaValue = Math.max(1, Math.floor(Math.sqrt(distLat*distLat + distLng*distLng) * 1000));
+      const eta = `${etaValue} min`;
+
+      socket.emit('update_location', { 
+        alertId, 
+        responderId: user._id, 
+        lat: currentLat, 
+        lng: currentLng,
+        hotelCode: alertData.hotelId.hotelCode,
+        eta
+      });
+      
+      setLocation({ lat: currentLat, lng: currentLng, eta });
+    }, 2000);
+  };
 
   useEffect(() => {
     msgEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -98,25 +154,55 @@ export default function ResponderAlert() {
   if (!alert) return null;
 
   return (
-    <div className="h-screen flex flex-col bg-bg-base overflow-hidden font-sans">
+    <div className="h-screen flex flex-col bg-bg-base overflow-hidden font-sans pb-24">
       {/* Map Area - Tactical Bento style */}
-      <div className="flex-1 bg-bg-base relative overflow-hidden">
-         <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#161D2E 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
-         
+      <div className="flex-1 bg-[#080B14] relative overflow-hidden">
+         <RealTimeMap 
+            center={[alert.hotelId?.lat || 12.9716, alert.hotelId?.lng || 77.5946]}
+            hotel={alert.hotelId}
+            alerts={[alert]}
+            responders={location ? [{ _id: user._id, name: 'Me', responderType: user.responderType, lat: location.lat, lng: location.lng, eta: location.eta }] : []}
+            zoom={15}
+            routingTo={location?.lat ? [alert.hotelId?.lat, alert.hotelId?.lng] : null}
+         />
+
          {/* Alert Header Overlay */}
-         <div className="absolute top-6 left-6 right-6 z-10 flex gap-4">
-            <div className="bg-bg-card/80 backdrop-blur-xl p-5 rounded-[2.5rem] border border-border-default flex-1 flex items-center gap-5 shadow-2xl">
-               <div className="w-14 h-14 bg-status-critical/10 rounded-2xl flex items-center justify-center text-status-critical border border-status-critical/20">
-                  <AlertCircle size={32} />
+         <div className="absolute top-6 left-6 right-6 z-10 space-y-4">
+            <div className="flex justify-between items-start gap-4">
+               <div className="bg-bg-card/90 backdrop-blur-xl p-4 rounded-2xl border border-border-default flex items-center gap-4 shadow-2xl">
+                  <div className="w-10 h-10 rounded-full bg-status-critical/20 flex items-center justify-center text-status-critical animate-pulse">
+                     <Navigation size={20} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-text-tertiary mb-0.5">Tactical Navigation</p>
+                    <p className="text-sm font-black text-text-primary uppercase tracking-tight">{alert.type} Incident @ R-{alert.room}</p>
+                  </div>
                </div>
-               <div>
-                  <h3 className="font-black text-text-primary text-xl tracking-tight leading-none uppercase">{alert.type} Incident</h3>
-                  <p className="text-[10px] font-black text-text-tertiary mt-1.5 uppercase tracking-[0.2em]">FLOOR {alert.floor} • ROOM {alert.room}</p>
+
+               {location?.eta && (
+                 <div className="bg-bg-card/90 backdrop-blur-xl w-24 h-24 rounded-[2.5rem] flex flex-col items-center justify-center shadow-2xl border-4 border-bg-base">
+                    <p className="text-[9px] font-black text-text-tertiary uppercase">ETA</p>
+                    <p className="text-3xl font-black text-text-primary tracking-tighter leading-none">{location.eta.split(' ')[0]}</p>
+                 </div>
+               )}
+            </div>
+
+            <div className="flex gap-2">
+               <div className="bg-bg-card/90 backdrop-blur-xl px-5 py-3 rounded-2xl border border-border-default shadow-xl">
+                  <p className="text-[8px] font-black uppercase tracking-widest text-text-tertiary mb-1">Route</p>
+                  <p className="text-xs font-bold text-text-primary">Dispatched</p>
+               </div>
+               <div className="bg-bg-card/90 backdrop-blur-xl px-5 py-3 rounded-2xl border border-border-default shadow-xl">
+                  <p className="text-[8px] font-black uppercase tracking-widest text-text-tertiary mb-1">Status</p>
+                  <p className="text-xs font-bold text-text-primary uppercase tracking-widest">{alert.status}</p>
                </div>
             </div>
-            <div className="flex flex-col gap-2">
+         </div>
+         
+         <div className="absolute top-36 left-6 right-6 z-[5] pointer-events-none">
+            <div className="flex flex-col gap-2 max-w-[240px]">
                {alert.raisedBy && (
-                  <div className="bg-bg-card/80 backdrop-blur-xl p-3 rounded-2xl border border-border-default flex items-center gap-3 shadow-xl">
+                  <div className="bg-bg-card/80 backdrop-blur-xl p-3 rounded-2xl border border-border-default flex items-center gap-3 shadow-xl pointer-events-auto">
                      <div className="w-8 h-8 bg-accent-blue/10 rounded-lg flex items-center justify-center text-accent-blue font-black text-[10px]">
                         {alert.raisedBy.name?.charAt(0)}
                      </div>
@@ -128,42 +214,9 @@ export default function ResponderAlert() {
                      </div>
                   </div>
                )}
-               {alert.hotelId && (
-                  <div className="bg-bg-card/80 backdrop-blur-xl p-3 rounded-2xl border border-border-default flex items-center gap-3 shadow-xl">
-                     <div className="w-8 h-8 bg-accent-purple/10 rounded-lg flex items-center justify-center text-accent-purple font-black text-[10px]">
-                        H
-                     </div>
-                     <div className="flex-1">
-                        <p className="text-[10px] font-black text-text-primary leading-none">Hotel Front Desk</p>
-                        <a href={`tel:${alert.hotelId.phone}`} className="text-[9px] font-bold text-accent-purple hover:underline">
-                           {alert.hotelId.phone}
-                        </a>
-                     </div>
-                  </div>
-               )}
-            </div>
-            {location?.eta && (
-               <div className="bg-accent-orange w-24 h-24 rounded-[2.5rem] flex flex-col items-center justify-center shadow-2xl shadow-accent-orange/30 border-4 border-bg-base">
-                  <p className="text-[9px] font-black text-white/70 uppercase">ETA</p>
-                  <p className="text-3xl font-black text-white tracking-tighter leading-none">{location.eta}</p>
-               </div>
-            )}
-            {!location?.eta && alert.status === 'accepted' && (
-               <div className="bg-bg-card/80 backdrop-blur-xl px-5 py-2 rounded-full border border-border-default flex items-center gap-2">
-                  <div className="w-2 h-2 bg-accent-orange rounded-full animate-pulse" />
-                  <span className="text-[10px] font-black uppercase text-accent-orange tracking-widest">Tactical Broadcast Active</span>
-               </div>
-            )}
-         </div>
-
-         {/* Tactical Markers */}
-         <div className="absolute inset-0 flex items-center justify-center">
-            <div className="relative">
-               <div className="absolute inset-0 bg-status-critical rounded-full blur-2xl opacity-20 animate-pulse"></div>
-               <MapPin className="text-status-critical fill-status-critical/20 filter drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]" size={48} />
             </div>
          </div>
-
+         
          {/* Support Intel Overlay */}
          <div className="absolute bottom-6 left-6 right-6 z-10 flex flex-col gap-3">
             <div className="bg-bg-card/80 backdrop-blur-xl p-4 rounded-3xl border border-border-default flex items-center gap-4 shadow-xl">
@@ -218,6 +271,8 @@ export default function ResponderAlert() {
                   <Zap size={22} className="fill-current" />
                </div>
             </div>
+
+            <BlueprintView room={alert.room} floor={String(alert.floor)} className="mb-4" />
 
             {/* Quick Actions Bento Grid */}
             <div className="grid grid-cols-3 gap-5">
@@ -360,6 +415,7 @@ export default function ResponderAlert() {
           />
         )}
       </AnimatePresence>
+      <MobileNav />
     </div>
   );
 }

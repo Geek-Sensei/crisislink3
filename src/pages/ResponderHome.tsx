@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import MobileNav from '../components/MobileNav';
 
 export default function ResponderHome() {
   const { user } = useAuth();
@@ -103,14 +104,19 @@ export default function ResponderHome() {
   const handleAccept = async (alertId: string) => {
     try {
       await axios.patch(`/api/alerts/${alertId}/accept`, { responderId: user._id });
+      setActiveAlert(null);
       navigate(`/responder/alert/${alertId}`);
     } catch (err) {
       alert("Alert could not be accepted.");
     }
   };
 
+  const handleDecline = () => {
+    setActiveAlert(null);
+  };
+
   return (
-    <div className="min-h-screen bg-bg-base p-6 max-w-lg mx-auto">
+    <div className="min-h-screen bg-bg-base p-6 max-w-lg mx-auto pb-32">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
@@ -178,7 +184,10 @@ export default function ResponderHome() {
 
       {/* Dashboard Grid Shortcuts */}
       <div className="grid grid-cols-2 gap-6 mb-8">
-         <button className="bento-card bg-bg-elevated/40 p-6 flex flex-col gap-4 group hover:border-accent-blue/50 transition-all text-left">
+         <button 
+           onClick={() => navigate('/responder/map')}
+           className="bento-card bg-bg-elevated/40 p-6 flex flex-col gap-4 group hover:border-accent-blue/50 transition-all text-left"
+         >
             <div className="w-12 h-12 bg-accent-blue/10 rounded-2xl flex items-center justify-center text-accent-blue group-hover:scale-110 transition-transform shadow-inner">
                <Map size={24} />
             </div>
@@ -452,6 +461,7 @@ export default function ResponderHome() {
           </motion.div>
         )}
       </AnimatePresence>
+      <MobileNav />
     </div>
   );
 }

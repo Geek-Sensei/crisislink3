@@ -10,6 +10,8 @@ import HotelSettings from './pages/HotelSettings';
 import ResponderLogin from './pages/ResponderLogin';
 import ResponderHome from './pages/ResponderHome';
 import ResponderAlert from './pages/ResponderAlert';
+import ResponderMap from './pages/ResponderMap';
+import DevRoleSwitcher from './components/DevRoleSwitcher';
 
 function ProtectedRoute({ children, role }: { children: React.ReactNode, role: string }) {
   const { user, loading } = useAuth();
@@ -70,6 +72,11 @@ export default function App() {
                 <ResponderHome />
               </ProtectedRoute>
             } />
+            <Route path="/responder/map" element={
+              <ProtectedRoute role="responder">
+                <ResponderMap />
+              </ProtectedRoute>
+            } />
             <Route path="/responder/alert/:alertId" element={
               <ProtectedRoute role="responder">
                 <ResponderAlert />
@@ -78,6 +85,7 @@ export default function App() {
 
             <Route path="/" element={<Navigate to="/guest/checkin" />} />
           </Routes>
+          <DevRoleSwitcher />
         </BrowserRouter>
       </div>
     </AuthProvider>
