@@ -158,6 +158,52 @@ export default function GuestHome() {
   return (
     <div className="h-screen flex flex-col bg-[#080B12] text-white overflow-hidden items-center">
       
+      {/* Global Broadcast Overlay */}
+      <div className="fixed top-0 left-0 right-0 z-[100] px-4 pt-12 pointer-events-none flex flex-col items-center gap-4">
+        <AnimatePresence>
+          {broadcasts.map(b => (
+            <motion.div 
+              key={b.id}
+              initial={{ y: -50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -20, opacity: 0 }}
+              className={`w-full max-w-md p-6 rounded-[2rem] border relative overflow-hidden shadow-2xl backdrop-blur-xl pointer-events-auto ${
+                b.severity === 'critical' ? 'bg-status-critical/90 border-status-critical/50' : 
+                b.severity === 'high' ? 'bg-status-high/90 border-status-high/50' : 
+                'bg-accent-blue/90 border-accent-blue/50'
+              }`}
+            >
+               <div className="flex items-start gap-4 relative z-10">
+                  <div className={`p-3 rounded-2xl shrink-0 ${
+                    b.severity === 'critical' ? 'bg-white text-status-critical' : 
+                    b.severity === 'high' ? 'bg-white text-status-high' : 
+                    'bg-white text-accent-blue'
+                  }`}>
+                     <AlertCircle size={24} />
+                  </div>
+                  <div className="flex-1">
+                     <h3 className={`font-black text-[10px] uppercase tracking-[0.2em] mb-2 text-white`}>
+                        Hotel Broadcast
+                     </h3>
+                     <p className="text-sm text-white leading-relaxed font-bold">
+                        {b.message}
+                     </p>
+                     <p className="text-[10px] text-white/70 mt-3 font-mono">
+                       {b.time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                     </p>
+                  </div>
+                  <button
+                    onClick={() => dismissBroadcast(b.id)}
+                    className="text-white hover:text-white/70 transition-colors bg-white/20 p-2 rounded-full"
+                  >
+                     <X size={16} />
+                  </button>
+               </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
       {/* Content Area */}
       <div className="flex-1 w-full max-w-md relative overflow-hidden pb-24">
         <AnimatePresence mode="wait">
@@ -179,59 +225,6 @@ export default function GuestHome() {
                   <User className="text-accent-purple" size={24} />
                 </div>
               </div>
-
-              {/* Broadcasts */}
-              <AnimatePresence>
-                {broadcasts.length > 0 && (
-                  <motion.div 
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    className="mb-8 flex flex-col gap-4"
-                  >
-                    {broadcasts.map(b => (
-                       <motion.div 
-                         key={b.id}
-                         initial={{ x: -20, opacity: 0 }}
-                         animate={{ x: 0, opacity: 1 }}
-                         className={`p-6 rounded-[2rem] border relative overflow-hidden shadow-xl ${
-                           b.severity === 'critical' ? 'bg-status-critical/10 border-status-critical/30' : 
-                           b.severity === 'high' ? 'bg-status-high/10 border-status-high/30' : 
-                           'bg-accent-blue/10 border-accent-blue/30'
-                         }`}
-                       >
-                          <div className="flex items-start gap-4 relative z-10">
-                             <div className={`p-3 rounded-2xl shrink-0 ${
-                               b.severity === 'critical' ? 'bg-status-critical text-white' : 
-                               b.severity === 'high' ? 'bg-status-high text-[#080B12]' : 
-                               'bg-accent-blue text-white'
-                             }`}>
-                                <AlertCircle size={24} />
-                             </div>
-                             <div>
-                                <h3 className={`font-black text-[10px] uppercase tracking-[0.2em] mb-2 ${
-                                  b.severity === 'critical' ? 'text-status-critical' : 
-                                  b.severity === 'high' ? 'text-status-high' : 
-                                  'text-accent-blue'
-                                }`}>Hotel Broadcast</h3>
-                                <p className="text-sm text-white/90 leading-relaxed font-bold">
-                                   {b.message}
-                                </p>
-                                <p className="text-[10px] text-white/50 mt-3 font-mono">
-                                  {b.time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                </p>
-                             </div>
-                             <button
-                               onClick={() => dismissBroadcast(b.id)}
-                               className="absolute top-4 right-4 text-white/30 hover:text-white transition-colors"
-                             >
-                                <X size={16} />
-                             </button>
-                          </div>
-                       </motion.div>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
 
               {/* Nearby Incidents */}
               <AnimatePresence>
