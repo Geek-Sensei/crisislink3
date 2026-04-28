@@ -49,40 +49,40 @@ function DashboardView({
   return (
     <>
       {/* Header Block */}
-      <header className="col-span-12 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 lg:mb-6">
-        <div className="flex items-center gap-3">
-           <div className="w-12 h-12 bg-accent-purple/10 rounded-2xl flex items-center justify-center text-accent-purple shrink-0">
-             <Shield size={24} />
+      <header className="col-span-12 flex flex-col md:flex-row md:items-center justify-between gap-4 px-1 lg:px-0 mb-6 lg:mb-8">
+        <div className="flex items-center gap-3 lg:gap-4">
+           <div className="w-12 h-12 lg:w-14 lg:h-14 bg-accent-purple/10 rounded-2xl flex items-center justify-center text-accent-purple shrink-0">
+             <Shield size={24} className="lg:w-8 lg:h-8" />
            </div>
            <div className="flex flex-col justify-center">
-             <h1 className="text-xl font-black text-text-primary flex items-center gap-2 leading-none mb-1.5">
+             <h1 className="text-lg lg:text-xl font-black text-text-primary flex items-center gap-2 leading-tight mb-1">
                {user?.hotelId?.name} 
-               <span className="text-[10px] px-2 py-0.5 bg-bg-elevated rounded border border-white/5 font-mono text-text-tertiary">#{user?.hotelId?.hotelCode}</span>
+               <span className="text-[9px] lg:text-[10px] px-1.5 py-0.5 bg-bg-elevated rounded border border-white/5 font-mono text-text-tertiary">#{user?.hotelId?.hotelCode}</span>
              </h1>
              <div className="flex items-center gap-2 leading-none">
-               <p className="text-text-secondary text-xs font-bold leading-none">Grid Monitor</p>
+               <p className="text-text-secondary text-[10px] lg:text-xs font-bold leading-none uppercase tracking-wider">Grid Monitor</p>
                <span className="w-1 h-1 bg-text-tertiary rounded-full" />
-               <p className="text-[10px] text-text-tertiary font-black uppercase tracking-widest flex items-center gap-1.5 leading-none">
+               <p className="text-[9px] lg:text-[10px] text-text-tertiary font-black uppercase tracking-widest flex items-center gap-1.5 leading-none">
                  <Clock size={10} className="shrink-0" /> {format(lastUpdate, 'HH:mm:ss')}
                </p>
              </div>
            </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="hidden md:flex items-center bg-bg-card rounded-xl px-4 py-2 border border-white/5 mr-2">
-            <span className="flex items-center text-status-safe font-black text-[10px] uppercase">
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="hidden sm:flex items-center bg-bg-card rounded-xl px-4 py-2.5 border border-white/5 mr-2">
+            <span className="flex items-center text-status-safe font-black text-[9px] lg:text-[10px] uppercase tracking-widest">
               <span className="w-2 h-2 rounded-full bg-status-safe mr-2 animate-pulse"></span> Protected
             </span>
           </div>
           <button 
             onClick={() => setShowBroadcast(true)}
-            className="flex-1 sm:flex-none bg-accent-blue/10 text-accent-blue border border-accent-blue/20 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-accent-blue hover:text-white transition-all"
+            className="flex-1 md:flex-none bg-accent-blue/10 text-accent-blue border border-accent-blue/20 px-3 lg:px-5 py-2.5 lg:py-3 rounded-xl font-black text-[9px] lg:text-[10px] uppercase tracking-[0.2em] hover:bg-accent-blue hover:text-white transition-all"
           >
             Broadcast
           </button>
           <button 
             onClick={() => setShowRaiseEmergency(true)}
-            className="flex-1 sm:flex-none bg-status-critical text-white px-5 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-status-critical/20 hover:scale-105 transition-all"
+            className="flex-1 md:flex-none bg-status-critical text-white px-4 lg:px-6 py-2.5 lg:py-3 rounded-xl font-black text-[9px] lg:text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-status-critical/20 hover:scale-105 transition-all"
           >
             Emergency
           </button>
@@ -183,7 +183,7 @@ function DashboardView({
 
       {/* Stats Cards - Grouped */}
       <div className="lg:col-span-4 flex flex-col gap-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
           <motion.div whileHover={{ y: -2 }} className="bento-card p-5 flex flex-col justify-between h-36 bg-gradient-to-br from-bg-card to-bg-card/50 border border-white/5 relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-24 h-24 bg-status-critical/10 blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="flex justify-between items-start relative z-10">
@@ -191,7 +191,7 @@ function DashboardView({
                <Bell size={14} className="text-status-critical" />
             </div>
             <div className="flex items-baseline gap-3 relative z-10">
-               <p className="text-5xl font-black text-white tracking-tighter">{stats.activeAlerts.toString().padStart(2, '0')}</p>
+               <p className="text-4xl lg:text-5xl font-black text-white tracking-tighter">{stats.activeAlerts.toString().padStart(2, '0')}</p>
                <p className="text-[10px] font-bold text-status-critical uppercase tracking-widest animate-pulse">Live</p>
             </div>
           </motion.div>
@@ -202,7 +202,7 @@ function DashboardView({
                <AlertTriangle size={14} className="text-status-high" />
             </div>
             <div className="flex items-baseline gap-3 relative z-10">
-               <p className="text-5xl font-black text-white tracking-tighter">{stats.unconfirmedSafe.toString().padStart(2, '0')}</p>
+               <p className="text-4xl lg:text-5xl font-black text-white tracking-tighter">{stats.unconfirmedSafe.toString().padStart(2, '0')}</p>
                <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-widest">Pending</p>
             </div>
           </motion.div>
@@ -648,56 +648,58 @@ export default function HotelDashboard() {
                   </div>
                </header>
 
-               <div className="bg-bg-card rounded-[2.5rem] border border-border-default overflow-hidden">
-                  <table className="w-full text-left border-collapse">
-                    <thead className="bg-bg-elevated/50 border-b border-border-default">
-                      <tr>
-                        <th className="p-6 text-[10px] font-black uppercase tracking-widest text-text-tertiary">Type</th>
-                        <th className="p-6 text-[10px] font-black uppercase tracking-widest text-text-tertiary">Location</th>
-                        <th className="p-6 text-[10px] font-black uppercase tracking-widest text-text-tertiary">Raised By</th>
-                        <th className="p-6 text-[10px] font-black uppercase tracking-widest text-text-tertiary">Status</th>
-                        <th className="p-6 text-[10px] font-black uppercase tracking-widest text-text-tertiary">Time</th>
-                        <th className="p-6 text-[10px] font-black uppercase tracking-widest text-text-tertiary">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border-default/50">
-                      {alerts.map(a => (
-                        <tr key={a._id} className="hover:bg-white/[0.02] transition-colors">
-                          <td className="p-6">
-                            <div className="flex items-center gap-3">
-                               <div className="w-8 h-8 rounded-lg bg-bg-elevated flex items-center justify-center text-lg shadow-inner">
-                                  {a.type === 'fire' ? '🔥' : a.type === 'medical' ? '🚑' : '👮'}
-                               </div>
-                               <span className="text-sm font-black text-white capitalize">{a.type}</span>
-                            </div>
-                          </td>
-                          <td className="p-6">
-                             <p className="text-sm font-bold text-text-secondary">Floor {a.floor}</p>
-                             <p className="text-[10px] text-text-tertiary font-black uppercase">Room {a.room}</p>
-                          </td>
-                          <td className="p-6">
-                             <div className="flex items-center gap-2">
-                               <div className="w-6 h-6 rounded-full bg-accent-purple/20 flex items-center justify-center text-[8px] font-black text-accent-purple">
-                                 {a.raisedBy?.name?.charAt(0) || 'G'}
-                               </div>
-                               <span className="text-xs font-medium text-text-secondary">{a.raisedBy?.name || 'Guest'}</span>
-                             </div>
-                          </td>
-                          <td className="p-6">
-                             <span className={`text-[9px] font-black px-3 py-1 rounded-full uppercase border ${
-                               a.status === 'resolved' ? 'text-status-safe border-status-safe/20 bg-status-safe/5' : 'text-accent-orange border-accent-orange/20 bg-accent-orange/5'
-                             }`}>{a.status.replace('_', ' ')}</span>
-                          </td>
-                          <td className="p-6 text-xs text-text-tertiary font-mono">
-                             {format(new Date(a.raisedAt), 'MMM dd, HH:mm')}
-                          </td>
-                          <td className="p-6">
-                             <button onClick={() => { setSelectedAlert(a); setActiveTab('dashboard'); }} className="text-[10px] font-black text-accent-purple uppercase tracking-widest hover:underline px-4 py-2 bg-accent-purple/10 rounded-lg">View Details</button>
-                          </td>
+               <div className="bg-bg-card rounded-[2rem] lg:rounded-[2.5rem] border border-border-default overflow-hidden">
+                  <div className="overflow-x-auto custom-scrollbar">
+                    <table className="w-full text-left border-collapse min-w-[800px] lg:min-w-0">
+                      <thead className="bg-bg-elevated/50 border-b border-border-default">
+                        <tr>
+                          <th className="p-4 lg:p-6 text-[10px] font-black uppercase tracking-widest text-text-tertiary">Type</th>
+                          <th className="p-4 lg:p-6 text-[10px] font-black uppercase tracking-widest text-text-tertiary">Location</th>
+                          <th className="p-4 lg:p-6 text-[10px] font-black uppercase tracking-widest text-text-tertiary">Raised By</th>
+                          <th className="p-4 lg:p-6 text-[10px] font-black uppercase tracking-widest text-text-tertiary">Status</th>
+                          <th className="p-4 lg:p-6 text-[10px] font-black uppercase tracking-widest text-text-tertiary">Time</th>
+                          <th className="p-4 lg:p-6 text-[10px] font-black uppercase tracking-widest text-text-tertiary">Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-border-default/50">
+                        {alerts.map(a => (
+                          <tr key={a._id} className="hover:bg-white/[0.02] transition-colors">
+                            <td className="p-4 lg:p-6">
+                              <div className="flex items-center gap-3">
+                                 <div className="w-8 h-8 rounded-lg bg-bg-elevated flex items-center justify-center text-lg shadow-inner">
+                                    {a.type === 'fire' ? '🔥' : a.type === 'medical' ? '🚑' : '👮'}
+                                 </div>
+                                 <span className="text-sm font-black text-white capitalize">{a.type}</span>
+                              </div>
+                            </td>
+                            <td className="p-4 lg:p-6">
+                               <p className="text-sm font-bold text-text-secondary">Floor {a.floor}</p>
+                               <p className="text-[10px] text-text-tertiary font-black uppercase">Room {a.room}</p>
+                            </td>
+                            <td className="p-4 lg:p-6">
+                               <div className="flex items-center gap-2">
+                                 <div className="w-6 h-6 rounded-full bg-accent-purple/20 flex items-center justify-center text-[8px] font-black text-accent-purple">
+                                   {a.raisedBy?.name?.charAt(0) || 'G'}
+                                 </div>
+                                 <span className="text-xs font-medium text-text-secondary">{a.raisedBy?.name || 'Guest'}</span>
+                               </div>
+                            </td>
+                            <td className="p-4 lg:p-6">
+                               <span className={`text-[9px] font-black px-3 py-1 rounded-full uppercase border ${
+                                 a.status === 'resolved' ? 'text-status-safe border-status-safe/20 bg-status-safe/5' : 'text-accent-orange border-accent-orange/20 bg-accent-orange/5'
+                               }`}>{a.status.replace('_', ' ')}</span>
+                            </td>
+                            <td className="p-4 lg:p-6 text-xs text-text-tertiary font-mono">
+                               {format(new Date(a.raisedAt), 'MMM dd, HH:mm')}
+                            </td>
+                            <td className="p-4 lg:p-6">
+                               <button onClick={() => { setSelectedAlert(a); setActiveTab('dashboard'); }} className="text-[10px] font-black text-accent-purple uppercase tracking-widest hover:underline px-4 py-2 bg-accent-purple/10 rounded-lg whitespace-nowrap">View Details</button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                </div>
             </motion.div>
           )}
@@ -718,9 +720,9 @@ export default function HotelDashboard() {
                   <button className="bg-accent-purple text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-accent-purple/20">Add New Unit</button>
                </header>
 
-               <div className="grid grid-cols-3 gap-8">
+               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-8">
                   {responders.map(r => (
-                    <div key={r._id} className="bento-card p-8 group relative overflow-hidden">
+                    <div key={r._id} className="bento-card p-6 lg:p-8 group relative overflow-hidden">
                        <div className="absolute top-0 right-0 p-4">
                           <div className={`w-3 h-3 rounded-full ${r.available ? 'bg-status-safe shadow-[0_0_12px_rgba(34,197,94,0.4)]' : 'bg-text-tertiary'}`} />
                        </div>
@@ -771,7 +773,7 @@ export default function HotelDashboard() {
                   <h2 className="text-3xl font-black text-text-primary uppercase tracking-tighter">Floor Plan & Assets</h2>
                   <p className="text-text-tertiary font-bold uppercase text-[10px] tracking-widest">Documented structural intel for responders</p>
                </header>
-               <div className="grid grid-cols-4 gap-6">
+               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
                   {['Floor Plan L1', 'Fire Exit Map', 'Medical Kit Locations', 'Server Room Access'].map((f, i) => (
                     <div key={i} className="bento-card p-6 flex flex-col items-center justify-center text-center gap-4 hover:border-accent-purple/50 transition-all cursor-pointer">
                        <div className="w-16 h-16 bg-accent-purple/10 rounded-2xl flex items-center justify-center text-accent-purple">

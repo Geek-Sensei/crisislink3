@@ -181,19 +181,19 @@ export default function HotelSettings() {
                 const existing = floorPlans.find(p => p.floor === floor);
 
                 return (
-                  <div key={floor} className="group relative flex items-center gap-6 p-6 bg-bg-elevated rounded-[2rem] border border-border-default hover:border-accent-purple/30 transition-all overflow-hidden">
-                    <div className="w-16 h-16 bg-bg-base/50 rounded-2xl flex flex-col items-center justify-center border border-white/5 font-black">
+                  <div key={floor} className="group relative flex flex-col sm:flex-row items-center gap-4 sm:gap-6 p-5 sm:p-6 bg-bg-elevated rounded-[2rem] border border-border-default hover:border-accent-purple/30 transition-all overflow-hidden">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 bg-bg-base/50 rounded-2xl flex flex-col items-center justify-center border border-white/5 font-black shrink-0">
                       <span className="text-[10px] text-text-tertiary uppercase tracking-tighter">LVL</span>
                       <span className="text-xl text-text-primary leading-none">0{floor}</span>
                     </div>
 
-                    <div className="flex-1">
+                    <div className="flex-1 text-center sm:text-left">
                       {existing ? (
-                        <div className="flex items-center gap-4">
+                        <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
                           <div className="w-20 h-10 bg-bg-card rounded-lg overflow-hidden border border-white/5 flex items-center justify-center text-[10px] font-mono text-text-tertiary opacity-60">
                             {existing.imagePath.substring(0, 20)}...
                           </div>
-                          <p className="text-xs font-bold text-text-primary uppercase tracking-widest truncate max-w-[150px]">
+                          <p className="text-xs font-bold text-text-primary uppercase tracking-widest truncate max-w-[200px]">
                             Blueprint Active
                           </p>
                         </div>
@@ -204,24 +204,24 @@ export default function HotelSettings() {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0">
                       {existing && (
                         <button 
                           onClick={() => removePlan(floor)}
-                          className="w-10 h-10 text-status-critical hover:bg-status-critical/10 rounded-xl flex items-center justify-center transition-all"
+                          className="flex-1 sm:flex-none w-auto sm:w-10 h-10 text-status-critical hover:bg-status-critical/10 rounded-xl flex items-center justify-center transition-all border border-status-critical/10 sm:border-0"
                         >
                           <Trash2 size={18} />
                         </button>
                       )}
                       
-                      <label className="cursor-pointer">
+                      <label className="cursor-pointer flex-1 sm:flex-none">
                         <input 
                           type="file" 
                           className="hidden" 
                           accept="image/*"
                           onChange={(e) => handleUpload(floor, e)} 
                         />
-                        <div className="px-5 py-3 bg-accent-purple/10 text-accent-purple hover:bg-accent-purple/20 border border-accent-purple/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2">
+                        <div className="px-5 py-3 bg-accent-purple/10 text-accent-purple hover:bg-accent-purple/20 border border-accent-purple/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
                           <Upload size={14} />
                           {existing ? 'Update' : 'Upload'}
                         </div>
