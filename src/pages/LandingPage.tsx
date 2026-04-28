@@ -1,5 +1,5 @@
-import React from 'react';
-import { motion } from 'motion/react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Shield, 
@@ -80,6 +80,8 @@ const PortalCard = ({
 };
 
 export default function LandingPage() {
+  const [showDemo, setShowDemo] = useState(false);
+
   return (
     <div className="min-h-screen bg-[#080B12] text-[#F1F5F9] relative overflow-hidden selection:bg-[#0EA5E9] selection:text-white">
       {/* Tactical Background Grid */}
@@ -118,8 +120,8 @@ export default function LandingPage() {
             className="text-center md:text-left"
           >
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#0EA5E9]/10 rounded-full border border-[#0EA5E9]/20 mb-8 mx-auto md:mx-0">
-               <Radio size={14} className="text-[#0EA5E9] animate-pulse" />
-               <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#0EA5E9]">Live Tactical Deployment Active</span>
+               <Radio size={14} className="text-[#0EA5E9] animate-pulse shrink-0" />
+               <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#0EA5E9] leading-none py-[2px]">Live Tactical Deployment Active</span>
             </div>
             
             <h1 className="text-[12vw] md:text-[100px] font-black text-white leading-[0.85] tracking-tighter mb-8 uppercase italic transition-all">
@@ -134,20 +136,20 @@ export default function LandingPage() {
               </p>
               
               <div className="flex flex-wrap gap-8 md:justify-end">
-                 <div>
+                 <motion.div whileHover={{ scale: 1.1 }}>
                     <p className="text-3xl md:text-4xl font-black text-white leading-none mb-1 tracking-tighter">0.4s</p>
                     <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#475569]">Signal Latency</p>
-                 </div>
+                 </motion.div>
                  <div className="h-10 w-[1px] bg-white/5 hidden md:block" />
-                 <div>
+                 <motion.div whileHover={{ scale: 1.1 }}>
                     <p className="text-3xl md:text-4xl font-black text-white leading-none mb-1 tracking-tighter">99.9%</p>
                     <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#475569]">Uptime SLA</p>
-                 </div>
+                 </motion.div>
                  <div className="h-10 w-[1px] bg-white/5 hidden md:block" />
-                 <div>
+                 <motion.div whileHover={{ scale: 1.1 }}>
                     <p className="text-3xl md:text-4xl font-black text-white leading-none mb-1 tracking-tighter">ISO</p>
                     <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#475569]">CertifiedSec</p>
-                 </div>
+                 </motion.div>
               </div>
             </div>
           </motion.div>
@@ -160,7 +162,7 @@ export default function LandingPage() {
               Initialize System
             </button>
             <button 
-              onClick={() => alert("The tactical walkthrough demo is currently being processed by the BMS training unit.")}
+              onClick={() => setShowDemo(true)}
               className="px-10 py-5 bg-white/5 border border-white/10 text-white font-black text-xs uppercase tracking-[0.3em] rounded-2xl hover:bg-white/10 transition-all cursor-pointer"
             >
               Watch Demo
@@ -168,22 +170,138 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Global Radar View */}
+        {/* Demo Modal */}
+        <AnimatePresence>
+          {showDemo && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10">
+               <motion.div 
+                 initial={{ opacity: 0 }}
+                 animate={{ opacity: 1 }}
+                 exit={{ opacity: 0 }}
+                 onClick={() => setShowDemo(false)}
+                 className="absolute inset-0 bg-[#080B12]/95 backdrop-blur-md"
+               />
+               <motion.div 
+                 initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                 animate={{ scale: 1, opacity: 1, y: 0 }}
+                 exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                 className="relative w-full max-w-5xl bg-[#0F172A] border border-white/10 rounded-[3rem] overflow-hidden shadow-2xl flex flex-col md:flex-row"
+               >
+                  <div className="flex-1 p-8 md:p-12 space-y-8">
+                    <div>
+                      <div className="w-12 h-12 bg-[#0EA5E9]/10 rounded-2xl flex items-center justify-center text-[#0EA5E9] mb-6">
+                        <Activity size={24} />
+                      </div>
+                      <h2 className="text-4xl font-black text-white tracking-tighter uppercase italic leading-none mb-4">Tactical <br/>Walkthrough</h2>
+                      <p className="text-[#94A3B8] font-medium leading-relaxed">
+                        Experience the Crisis Link ecosystem. This walkthrough covers the critical 4-minute window from incident detection to tactical resolution.
+                      </p>
+                    </div>
+
+                    <div className="space-y-4">
+                      {[
+                        { title: 'BMS Aggregation', desc: 'IoT sensors detect anomalies across hotel infrastructure.' },
+                        { title: 'AI Classification', desc: 'Gemini models brief responders with tactical summaries.' },
+                        { title: 'Comms Bridge', desc: 'Secure 3-way bridge between staff, responders, and guests.' }
+                      ].map((step, i) => (
+                        <div key={i} className="flex gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
+                           <div className="w-6 h-6 rounded-full bg-[#0EA5E9]/20 text-[#0EA5E9] flex items-center justify-center text-[10px] font-black shrink-0">{i+1}</div>
+                           <div>
+                             <p className="text-xs font-black text-white uppercase tracking-widest">{step.title}</p>
+                             <p className="text-[11px] text-[#94A3B8]">{step.desc}</p>
+                           </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="pt-4">
+                       <button 
+                         onClick={() => setShowDemo(false)}
+                         className="w-full py-4 bg-white text-black font-black text-[10px] uppercase tracking-[0.2em] rounded-xl hover:scale-[1.02] transition-all"
+                       >
+                         Understood
+                       </button>
+                    </div>
+                  </div>
+                  <div className="md:w-1/2 bg-[#080B12] relative overflow-hidden border-l border-white/10 hidden md:block">
+                     <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #fff 1px, transparent 0)', backgroundSize: '16px 16px' }} />
+                     <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-center">
+                        <div className="w-48 h-48 border-2 border-[#0EA5E9]/20 rounded-full flex items-center justify-center animate-[spin_20s_linear_infinite]">
+                           <div className="w-32 h-32 border-2 border-[#0EA5E9]/40 rounded-full flex items-center justify-center animate-[spin_10s_linear_infinite_reverse]">
+                              <Shield size={48} className="text-[#0EA5E9] opacity-50" />
+                           </div>
+                        </div>
+                        <div className="mt-8">
+                           <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.5em]">Neural Link Status</p>
+                           <p className="text-accent-blue font-mono text-sm mt-2">ENCRYPTED_STREAM_ON</p>
+                        </div>
+                     </div>
+                  </div>
+               </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Tactical Radar Data View */}
         <div className="relative mb-32 overflow-hidden rounded-[3rem] border border-white/5 bg-[#0F172A] aspect-[21/9]">
-           <div className="absolute inset-0 opacity-20" 
-                style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #fff 1px, transparent 0)', backgroundSize: '24px 24px' }} />
+           <div className="absolute inset-0 opacity-[0.05]" 
+                style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #fff 1px, transparent 0)', backgroundSize: '32px 32px' }} />
            
-           <div className="absolute inset-0 flex items-center justify-center">
+           <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
               <div className="w-[120%] h-[120%] border border-white/5 rounded-full flex items-center justify-center animate-[pulse_6s_infinite]">
-                 <div className="w-[60%] h-[60%] border border-white/5 rounded-full flex items-center justify-center">
-                    <div className="w-12 h-12 bg-[#0EA5E9] rounded-full blur-[40px] opacity-20" />
+                 <div className="w-[70%] h-[70%] border border-white/5 rounded-full flex items-center justify-center relative">
+                    <div className="absolute top-0 left-1/2 w-px h-full bg-gradient-to-b from-transparent via-white/10 to-transparent rotate-45" />
+                    <div className="absolute top-0 left-1/2 w-px h-full bg-gradient-to-b from-transparent via-white/10 to-transparent -rotate-45" />
+                    <div className="w-12 h-12 bg-[#0EA5E9] rounded-full blur-[60px] opacity-20" />
                  </div>
               </div>
+
+              {/* Data Markers */}
+              {[
+                { top: '20%', left: '30%', label: 'Sector 4: CLEAR' },
+                { top: '60%', left: '70%', label: 'Zone A: MONITORED' },
+                { top: '40%', left: '15%', label: 'Link: STABLE' }
+              ].map((m, i) => (
+                <motion.div 
+                  key={i}
+                  animate={{ opacity: [0.2, 1, 0.2] }}
+                  transition={{ repeat: Infinity, duration: 3, delay: i * 0.8 }}
+                  className="absolute pointer-events-none"
+                  style={{ top: m.top, left: m.left }}
+                >
+                  <div className="w-2 h-2 bg-[#0EA5E9] rounded-full shadow-[0_0_8px_#0EA5E9]" />
+                  <p className="mt-2 text-[8px] font-black text-[#0EA5E9] uppercase tracking-widest whitespace-nowrap">{m.label}</p>
+                </motion.div>
+              ))}
            </div>
 
-           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-              <Globe className="text-[#0EA5E9] w-24 h-24 mb-4 mx-auto animate-pulse opacity-50" strokeWidth={1} />
-              <p className="text-[10px] font-black uppercase tracking-[0.8em] text-white/20 whitespace-nowrap">Tactical Neural Network Online</p>
+           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none flex flex-col items-center">
+              <div className="relative mb-2">
+                 <Globe className="text-[#0EA5E9] w-20 h-20 animate-pulse opacity-60" strokeWidth={0.5} />
+                 <motion.div 
+                   animate={{ rotate: 360 }}
+                   transition={{ repeat: Infinity, duration: 10, ease: "linear" }}
+                   className="absolute inset-[-20px] border border-dashed border-white/10 rounded-full"
+                 />
+              </div>
+              <p className="text-[9px] font-black uppercase tracking-[1em] text-white/30 whitespace-nowrap ml-[1em]">Tactical Grid Active</p>
+           </div>
+
+           {/* Live Telemetry Overlay */}
+           <div className="absolute bottom-8 left-8 right-8 flex justify-between items-end pointer-events-none">
+              <div className="space-y-1">
+                 <p className="text-[7px] font-black text-white/20 uppercase tracking-[0.3em]">Neural Link Latency</p>
+                 <div className="flex items-center gap-1">
+                    <div className="w-24 h-1 bg-white/5 rounded-full overflow-hidden">
+                       <motion.div animate={{ width: ['20%', '60%', '40%'] }} transition={{ repeat: Infinity, duration: 2 }} className="h-full bg-[#0EA5E9]" />
+                    </div>
+                    <span className="text-[9px] font-mono text-[#0EA5E9]">0.4ms</span>
+                 </div>
+              </div>
+              <div className="text-right">
+                 <p className="text-[7px] font-black text-white/20 uppercase tracking-[0.3em]">System Entropy</p>
+                 <p className="text-sm font-black text-white font-mono leading-none">0.00032 <span className="text-status-safe text-[8px]">STABLE</span></p>
+              </div>
            </div>
         </div>
 

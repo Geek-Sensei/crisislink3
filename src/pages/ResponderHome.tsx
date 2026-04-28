@@ -17,7 +17,8 @@ import {
   User,
   MapPin,
   Target,
-  Signal
+  Signal,
+  Activity
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -141,12 +142,12 @@ export default function ResponderHome() {
             <div className="absolute top-full mt-2 left-0 px-2 py-1 bg-bg-card border border-white/10 rounded text-[7px] font-black uppercase opacity-0 group-hover:opacity-100 whitespace-nowrap z-50">Profile</div>
           </button>
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-accent-orange/10 rounded-2xl flex items-center justify-center text-accent-orange border border-accent-orange/20 shadow-lg">
+            <div className="w-14 h-14 bg-accent-orange/10 rounded-2xl flex items-center justify-center text-accent-orange border border-accent-orange/20 shadow-lg shrink-0">
               <Shield size={28} />
             </div>
-            <div>
-              <h1 className="text-xl font-black text-text-primary tracking-tight">{user?.name}</h1>
-              <p className="text-[10px] text-text-tertiary font-black uppercase tracking-[0.2em]">{user?.agency}</p>
+            <div className="flex flex-col justify-center">
+              <h1 className="text-xl font-black text-text-primary tracking-tight leading-none mb-1">{user?.name}</h1>
+              <p className="text-[10px] text-text-tertiary font-black uppercase tracking-[0.2em] leading-none">{user?.agency}</p>
             </div>
           </div>
         </div>
@@ -216,14 +217,52 @@ export default function ResponderHome() {
             <span className="font-black text-sm text-text-primary tracking-tight">Deployment Map</span>
          </button>
          <button 
-           onClick={() => alert("Performance Analytics module is restricted to agency supervisors. Please contact your administrator for access.")}
+           onClick={() => alert("Detailed agency-wide analytics are restricted. View your personal tactical performance below.")}
            className="bento-card bg-bg-elevated/40 p-6 flex flex-col gap-4 group hover:border-accent-orange/50 transition-all text-left"
          >
             <div className="w-12 h-12 bg-accent-orange/10 rounded-2xl flex items-center justify-center text-accent-orange group-hover:scale-110 transition-transform shadow-inner">
                <TrendingUp size={24} />
             </div>
-            <span className="font-black text-sm text-text-primary tracking-tight">Performance Analytics</span>
+            <span className="font-black text-sm text-text-primary tracking-tight">Performance Metrics</span>
          </button>
+      </div>
+
+      {/* Tactical Hub - Replaces decorative bars with a more relevant 'System Pulse' */}
+      <div className="bento-card bg-bg-card p-6 mb-8 overflow-hidden relative border-accent-blue/10">
+         <div className="flex justify-between items-start mb-6">
+            <div>
+               <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-text-tertiary">Strategic Resource Pulse</h3>
+               <p className="text-xl font-black text-text-primary">Zone B-4 <span className="text-[10px] text-accent-blue font-mono ml-2">HEARTBEAT_READY</span></p>
+            </div>
+            <div className="w-10 h-10 bg-accent-blue/10 rounded-xl flex items-center justify-center text-accent-blue">
+               <Activity size={20} className="animate-pulse" />
+            </div>
+         </div>
+         
+         <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="bg-bg-elevated/40 p-4 rounded-2xl border border-white/5">
+               <p className="text-[8px] font-black text-text-tertiary uppercase tracking-widest mb-1">Response Latency</p>
+               <p className="text-lg font-black text-white">142ms</p>
+            </div>
+            <div className="bg-bg-elevated/40 p-4 rounded-2xl border border-white/5">
+               <p className="text-[8px] font-black text-text-tertiary uppercase tracking-widest mb-1">Secure Uptime</p>
+               <p className="text-lg font-black text-status-safe">99.9%</p>
+            </div>
+         </div>
+
+         <div className="p-4 bg-status-safe/5 border border-status-safe/20 rounded-2xl flex items-center gap-4">
+            <div className="flex gap-1">
+               {[1, 2, 3, 4].map(i => (
+                 <motion.div 
+                   key={i}
+                   animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
+                   transition={{ repeat: Infinity, duration: 1, delay: i * 0.2 }}
+                   className="w-1 h-1 bg-status-safe rounded-full"
+                 />
+               ))}
+            </div>
+            <p className="text-[9px] font-black text-status-safe uppercase tracking-widest">Neural Link Synchronized: All Sectors Clear</p>
+         </div>
       </div>
 
       {/* Active Missions */}
