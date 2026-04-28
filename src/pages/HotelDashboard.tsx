@@ -90,7 +90,7 @@ function DashboardView({
       </header>
 
       {/* Main Incident Feed */}
-      <div className="lg:col-span-8 lg:row-span-4 bento-card flex flex-col">
+      <div className="lg:col-span-8 bento-card flex flex-col overflow-hidden min-h-[500px] lg:min-h-[400px]">
         <div className="bg-bg-card/50 p-4 border-b border-border-default flex justify-between items-center backdrop-blur-md sticky top-0 z-10">
           <div className="flex items-center gap-3">
             <Activity size={18} className="text-accent-purple shrink-0" />
@@ -182,7 +182,7 @@ function DashboardView({
       </div>
 
       {/* Stats Cards - Grouped */}
-      <div className="lg:col-span-4 flex flex-col gap-4">
+      <div className="lg:col-span-4 flex flex-col gap-4 overflow-hidden min-h-[500px] lg:min-h-[400px]">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
           <motion.div whileHover={{ y: -2 }} className="bento-card p-5 flex flex-col justify-between h-36 bg-gradient-to-br from-bg-card to-bg-card/50 border border-white/5 relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-24 h-24 bg-status-critical/10 blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -209,7 +209,7 @@ function DashboardView({
         </div>
 
         {/* Floor Tracking & Unit Status Tabs */}
-        <div className="bento-card flex-1 flex flex-col min-h-[500px] border border-white/5">
+        <div className="bento-card flex-1 flex flex-col overflow-hidden min-h-[400px] lg:min-h-0 border border-white/5">
           <div className="flex border-b border-border-default">
             <button 
               className="flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-text-tertiary hover:text-white border-b-2 border-transparent"
@@ -609,7 +609,7 @@ export default function HotelDashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="bento-grid grid-rows-none lg:grid-rows-6 h-full"
+              className="flex flex-col lg:grid lg:grid-cols-12 gap-6 h-full lg:grid-rows-[auto_1fr]"
             >
               <DashboardView 
                 user={user} 
