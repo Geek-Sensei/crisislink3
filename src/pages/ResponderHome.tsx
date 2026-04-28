@@ -55,6 +55,11 @@ export default function ResponderHome() {
       // Show takeover for matching dispatches if available
       if (available && alert.status === 'open' && (alert.type === user.responderType || alert.type === 'general')) {
         setActiveAlert(alert);
+        if (alert.severity === 'critical') {
+           const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+           audio.volume = 0.5;
+           audio.play().catch(e => console.log('Audio autoplay blocked'));
+        }
       }
       fetchActiveAlerts();
     });

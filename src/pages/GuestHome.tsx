@@ -14,7 +14,8 @@ import {
   LogOut,
   Hotel,
   MapPin,
-  CheckCircle2
+  CheckCircle2,
+  X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { generateSafetyBriefing } from '../services/geminiService';
@@ -26,9 +27,16 @@ export default function GuestHome() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<NavTab>('alerts');
   const [raising, setRaising] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [type, setType] = useState<'fire' | 'medical' | 'security' | 'general' | null>(null);
   const [description, setDescription] = useState('');
+  const [broadcasts, setBroadcasts] = useState<{message: string, severity: string, time: Date, id: string}[]>([]);
+  const [nearbyAlerts, setNearbyAlerts] = useState<any[]>([]);
   const navigate = useNavigate();
+
+  const dismissBroadcast = (id: string) => {
+    setBroadcasts(prev => prev.filter(b => b.id !== id));
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -49,6 +57,21 @@ export default function GuestHome() {
         });
         await axios.patch(`/api/users/${user._id}`, { safetyBriefing: briefing });
       }
+
+      // Check for active alerts
+      try {
+         const res = await axios.get('/api/alerts/active');
+         const active = res.data.find((a: any) => a.raisedBy._id === user._id || a.raisedBy === user._id);
+         if (active) {
+            navigate(`/guest/track/${active._id}`);
+         } else {
+            const hotelId = user.hotelId?._id || user.hotelId;
+            const onMyFloor = res.data.filter((a: any) => a.floor === user.floor && (a.hotelId?._id === hotelId || a.hotelId === hotelId));
+            setNearbyAlerts(onMyFloor);
+         }
+      } catch (err) {
+         console.error(err);
+      }
     };
     
     init();
@@ -56,31 +79,59 @@ export default function GuestHome() {
     socket.on('alert_created', (alert) => {
       if (alert.raisedBy === user._id) {
         navigate(`/guest/track/${alert._id}`);
+      } else if (alert.floor === user.floor) {
+        setNearbyAlerts(prev => [alert, ...prev]);
+        if (alert.severity === 'critical') {
+           const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+           audio.volume = 0.5;
+           audio.play().catch(e => console.log('Audio autoplay blocked'));
+        }
       }
     });
 
+    socket.on('alert_updated', (alert) => {
+      setNearbyAlerts(prev => {
+        const idx = prev.findIndex(a => a._id === alert._id);
+        if (idx !== -1) {
+          const newAlerts = [...prev];
+          newAlerts[idx] = alert;
+          // if resolved, we could remove it, but let's keep it to show it's resolved
+          return newAlerts;
+        }
+        return prev;
+      });
+    });
+
     socket.on('broadcast_alert', ({ message, severity }) => {
-      window.alert(`[BROADCAST - ${severity.toUpperCase()}] ${message}`);
+      setBroadcasts(prev => [{
+        message, 
+        severity, 
+        time: new Date(),
+        id: Math.random().toString(36).substring(7)
+      }, ...prev]);
     });
 
     return () => {
       socket.off('alert_created');
+      socket.off('alert_updated');
       socket.off('broadcast_alert');
     };
   }, [user]);
 
   const handleRaise = async () => {
-    if (!type || !user) return;
+    if (!type || !user || isSubmitting) return;
+    setIsSubmitting(true);
     try {
       const severity = (type === 'fire' || type === 'medical') ? 'critical' : 'high';
       const hotelId = user.hotelId?._id || user.hotelId;
       
       if (!hotelId || hotelId === 'undefined') {
         window.alert("Hotel information is missing. Please refresh.");
+        setIsSubmitting(false);
         return;
       }
 
-      await axios.post('/api/alerts/raise', {
+      const res = await axios.post('/api/alerts/raise', {
         type, 
         severity,
         floor: user.floor || 1,
@@ -90,8 +141,10 @@ export default function GuestHome() {
         raisedByRole: 'guest',
         hotelId
       });
+      navigate(`/guest/track/${res.data._id}`);
     } catch (err) {
       window.alert("Error raising alert");
+      setIsSubmitting(false);
     }
   };
 
@@ -126,6 +179,104 @@ export default function GuestHome() {
                   <User className="text-accent-purple" size={24} />
                 </div>
               </div>
+
+              {/* Broadcasts */}
+              <AnimatePresence>
+                {broadcasts.length > 0 && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="mb-8 flex flex-col gap-4"
+                  >
+                    {broadcasts.map(b => (
+                       <motion.div 
+                         key={b.id}
+                         initial={{ x: -20, opacity: 0 }}
+                         animate={{ x: 0, opacity: 1 }}
+                         className={`p-6 rounded-[2rem] border relative overflow-hidden shadow-xl ${
+                           b.severity === 'critical' ? 'bg-status-critical/10 border-status-critical/30' : 
+                           b.severity === 'high' ? 'bg-status-high/10 border-status-high/30' : 
+                           'bg-accent-blue/10 border-accent-blue/30'
+                         }`}
+                       >
+                          <div className="flex items-start gap-4 relative z-10">
+                             <div className={`p-3 rounded-2xl shrink-0 ${
+                               b.severity === 'critical' ? 'bg-status-critical text-white' : 
+                               b.severity === 'high' ? 'bg-status-high text-[#080B12]' : 
+                               'bg-accent-blue text-white'
+                             }`}>
+                                <AlertCircle size={24} />
+                             </div>
+                             <div>
+                                <h3 className={`font-black text-[10px] uppercase tracking-[0.2em] mb-2 ${
+                                  b.severity === 'critical' ? 'text-status-critical' : 
+                                  b.severity === 'high' ? 'text-status-high' : 
+                                  'text-accent-blue'
+                                }`}>Hotel Broadcast</h3>
+                                <p className="text-sm text-white/90 leading-relaxed font-bold">
+                                   {b.message}
+                                </p>
+                                <p className="text-[10px] text-white/50 mt-3 font-mono">
+                                  {b.time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                </p>
+                             </div>
+                             <button
+                               onClick={() => dismissBroadcast(b.id)}
+                               className="absolute top-4 right-4 text-white/30 hover:text-white transition-colors"
+                             >
+                                <X size={16} />
+                             </button>
+                          </div>
+                       </motion.div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Nearby Incidents */}
+              <AnimatePresence>
+                {nearbyAlerts.length > 0 && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="mb-8 flex flex-col gap-4"
+                  >
+                    {nearbyAlerts.filter(a => a.status !== 'resolved' && a.status !== 'false_alarm').map(alert => (
+                       <motion.div 
+                         key={alert._id}
+                         initial={{ scale: 0.95, opacity: 0 }}
+                         animate={{ scale: 1, opacity: 1 }}
+                         className="p-6 rounded-[2rem] border relative overflow-hidden shadow-xl bg-[#0F1420] border-white/10"
+                       >
+                          <div className="flex items-start gap-4 relative z-10">
+                             <div className="p-3 bg-status-high/10 rounded-2xl shrink-0 border border-status-high/20">
+                                <AlertCircle className="text-status-high" size={24} />
+                             </div>
+                             <div>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h3 className="font-black text-[10px] uppercase tracking-[0.2em] text-status-high">Nearby Incident</h3>
+                                  <span className="text-[8px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-white/50 uppercase font-black">{alert.type}</span>
+                                </div>
+                                <p className="text-sm text-white/90 leading-relaxed font-bold">
+                                   Please stay alert. An incident has been reported on your floor (Floor {alert.floor}).
+                                </p>
+                                {alert.aiClassification?.responderBriefing && (
+                                  <div className="mt-4 p-4 rounded-xl bg-status-high/5 border border-status-high/10">
+                                    <h4 className="text-[9px] font-black uppercase text-status-high/70 mb-1 tracking-widest flex items-center gap-1">
+                                      <Zap size={10} /> Responder Directive
+                                    </h4>
+                                    <p className="text-xs text-white/80 leading-relaxed">
+                                      {alert.aiClassification.responderBriefing}
+                                    </p>
+                                  </div>
+                                )}
+                             </div>
+                          </div>
+                       </motion.div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Safety Briefing */}
               <div className="bg-[#161D2E]/50 p-6 rounded-[2.5rem] border border-white/5 relative mb-12 overflow-hidden shadow-xl">
@@ -192,13 +343,22 @@ export default function GuestHome() {
                    />
 
                    <button 
-                     disabled={!type}
+                     disabled={!type || isSubmitting}
                      onClick={handleRaise}
-                     className={`w-full py-6 rounded-3xl font-black text-sm tracking-widest uppercase text-white transition-all ${
+                     className={`w-full py-6 rounded-3xl font-black text-sm tracking-widest uppercase text-white transition-all overflow-hidden relative group ${
                        type ? 'bg-status-critical hover:brightness-110 shadow-2xl shadow-status-critical/30' : 'bg-[#475569]/20 text-[#475569] cursor-not-allowed'
                      }`}
                    >
-                     ACTIVATE PROTOCOL
+                     {isSubmitting ? (
+                        <span className="flex items-center justify-center gap-2">
+                           <Zap size={16} className="animate-pulse" /> Activating...
+                        </span>
+                     ) : (
+                        "Activate Protocol"
+                     )}
+                     {type && !isSubmitting && (
+                        <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none" />
+                     )}
                    </button>
                 </div>
               )}

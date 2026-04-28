@@ -387,6 +387,13 @@ export default function HotelDashboard() {
       setAlerts(prev => [alert, ...prev]);
       setLastUpdate(new Date());
 
+      // Play sound
+      if (alert.severity === 'critical') {
+         const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+         audio.volume = 0.5;
+         audio.play().catch(e => console.log('Audio autoplay blocked'));
+      }
+
       // Perform AI classification on the frontend and update backend
       if (!alert.aiClassification) {
         const ai = await classifyAlert(alert.description || alert.type);
@@ -512,7 +519,19 @@ export default function HotelDashboard() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-bg-base overflow-hidden">
+    <div className="flex flex-col lg:flex-row h-screen bg-bg-base overflow-hidden relative">
+      {/* Global Visual Strobe for Critical Alerts */}
+      <AnimatePresence>
+         {alerts.some(a => a.severity === 'critical' && a.status === 'open') && (
+            <motion.div 
+               initial={{ opacity: 0 }}
+               animate={{ opacity: [0, 0.1, 0] }}
+               transition={{ repeat: Infinity, duration: 2 }}
+               className="fixed inset-0 bg-status-critical pointer-events-none z-[100]"
+            />
+         )}
+      </AnimatePresence>
+      
       {/* Sidebar - Slim Bento Style - Adaptive */}
       <nav className="fixed bottom-0 left-0 right-0 lg:relative lg:bottom-auto lg:left-auto lg:right-auto lg:w-20 bg-bg-card border-t lg:border-t-0 lg:border-r border-border-default flex lg:flex-col items-center py-4 lg:py-8 justify-around lg:justify-start lg:space-y-8 z-50">
         <div 

@@ -12,6 +12,7 @@ import {
   X, 
   CheckCircle2, 
   AlertTriangle, 
+  AlertCircle,
   Send, 
   Zap, 
   Phone,
@@ -39,7 +40,12 @@ export default function GuestTrack() {
   const [showChat, setShowChat] = useState(false);
   const [showConference, setShowConference] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lng: number; eta?: string } | null>(null);
+  const [broadcasts, setBroadcasts] = useState<{message: string, severity: string, time: Date, id: string}[]>([]);
   const msgEndRef = useRef<HTMLDivElement>(null);
+
+  const dismissBroadcast = (id: string) => {
+    setBroadcasts(prev => prev.filter(b => b.id !== id));
+  };
 
   useEffect(() => {
     axios.get(`/api/alerts/${alertId}`).then(res => setAlert(res.data));
@@ -65,8 +71,12 @@ export default function GuestTrack() {
     });
 
     socket.on('broadcast_alert', ({ message, severity }) => {
-      // In a real app we'd use a better toast
-      console.log(`[BROADCAST - ${severity.toUpperCase()}] ${message}`);
+      setBroadcasts(prev => [{
+        message, 
+        severity, 
+        time: new Date(),
+        id: Math.random().toString(36).substring(7)
+      }, ...prev]);
     });
 
     socket.on('conference_started', () => {
@@ -200,6 +210,59 @@ export default function GuestTrack() {
               </div>
 
               <div className="space-y-6 flex-1">
+                {/* Broadcasts */}
+                <AnimatePresence>
+                  {broadcasts.length > 0 && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="flex flex-col gap-4"
+                    >
+                      {broadcasts.map(b => (
+                         <motion.div 
+                           key={b.id}
+                           initial={{ x: -20, opacity: 0 }}
+                           animate={{ x: 0, opacity: 1 }}
+                           className={`p-6 rounded-[2rem] border relative overflow-hidden shadow-xl ${
+                             b.severity === 'critical' ? 'bg-status-critical/10 border-status-critical/30' : 
+                             b.severity === 'high' ? 'bg-status-high/10 border-status-high/30' : 
+                             'bg-accent-blue/10 border-accent-blue/30'
+                           }`}
+                         >
+                            <div className="flex items-start gap-4 relative z-10">
+                               <div className={`p-3 rounded-2xl shrink-0 ${
+                                 b.severity === 'critical' ? 'bg-status-critical text-white' : 
+                                 b.severity === 'high' ? 'bg-status-high text-[#080B12]' : 
+                                 'bg-accent-blue text-white'
+                               }`}>
+                                  <AlertCircle size={24} />
+                               </div>
+                               <div>
+                                  <h3 className={`font-black text-[10px] uppercase tracking-[0.2em] mb-2 ${
+                                    b.severity === 'critical' ? 'text-status-critical' : 
+                                    b.severity === 'high' ? 'text-status-high' : 
+                                    'text-accent-blue'
+                                  }`}>Hotel Broadcast</h3>
+                                  <p className="text-sm text-white/90 leading-relaxed font-bold">
+                                     {b.message}
+                                  </p>
+                                  <p className="text-[10px] text-white/50 mt-3 font-mono">
+                                    {b.time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                  </p>
+                               </div>
+                               <button
+                                 onClick={() => dismissBroadcast(b.id)}
+                                 className="absolute top-4 right-4 text-white/30 hover:text-white transition-colors"
+                               >
+                                  <X size={16} />
+                               </button>
+                            </div>
+                         </motion.div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 {/* Status Bar */}
                 <div className="bg-[#161D2E]/50 p-6 rounded-[2rem] border border-white/5">
                   <div className="flex justify-between items-center mb-6">
