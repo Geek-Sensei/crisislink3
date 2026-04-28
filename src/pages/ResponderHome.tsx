@@ -22,9 +22,10 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import MobileNav from '../components/MobileNav';
+import BlueprintView from '../components/BlueprintView';
 
 export default function ResponderHome() {
-  const { user } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const [available, setAvailable] = useState(user?.available || false);
   const [activeAlert, setActiveAlert] = useState<any>(null); // For the takeover overlay
   const [allActiveAlerts, setAllActiveAlerts] = useState<any[]>([]);
@@ -50,14 +51,20 @@ export default function ResponderHome() {
     }
 
     socket.on('alert_created', (alert) => {
-      // Show takeover for matching dispatches
-      if (alert.status === 'open' && (alert.type === user.responderType || alert.type === 'general')) {
+      // Show takeover for matching dispatches if available
+      if (available && alert.status === 'open' && (alert.type === user.responderType || alert.type === 'general')) {
         setActiveAlert(alert);
       }
       fetchActiveAlerts();
     });
 
-    socket.on('alert_updated', () => {
+    socket.on('alert_updated', (updated) => {
+      // If this responder was just assigned this alert by hotel staff
+      const assignedToMe = (updated.responderId?._id === user._id || updated.responderId === user._id);
+      if (assignedToMe && updated.status === 'accepted') {
+        // Only show takeover if not already viewing or navigation hasn't happened
+        setActiveAlert(updated);
+      }
       fetchActiveAlerts();
     });
 
@@ -71,10 +78,16 @@ export default function ResponderHome() {
     };
   }, [user]);
 
-  const toggleAvailability = () => {
-    const next = !available;
-    setAvailable(next);
-    socket.emit('mark_available', { responderId: user._id, available: next });
+  const toggleAvailability = async () => {
+    try {
+      const next = !available;
+      const { data } = await axios.patch(`/api/users/${user._id}`, { available: next });
+      setAvailable(data.available);
+      updateUser(data);
+      socket.emit('mark_available', { responderId: user._id, available: data.available });
+    } catch (err) {
+      console.error("Failed to update availability", err);
+    }
   };
 
   const updateLocation = () => {
@@ -122,9 +135,10 @@ export default function ResponderHome() {
         <div className="flex items-center gap-4">
           <button 
             onClick={() => setShowProfile(true)}
-            className="w-14 h-14 bg-bg-card rounded-2xl flex items-center justify-center text-text-tertiary border border-border-default hover:text-text-primary transition-colors"
+            className="w-14 h-14 bg-bg-card rounded-2xl flex items-center justify-center text-text-tertiary border border-border-default hover:text-text-primary transition-colors group relative"
           >
             <User size={28} />
+            <div className="absolute top-full mt-2 left-0 px-2 py-1 bg-bg-card border border-white/10 rounded text-[7px] font-black uppercase opacity-0 group-hover:opacity-100 whitespace-nowrap z-50">Profile</div>
           </button>
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-accent-orange/10 rounded-2xl flex items-center justify-center text-accent-orange border border-accent-orange/20 shadow-lg">
@@ -136,15 +150,23 @@ export default function ResponderHome() {
             </div>
           </div>
         </div>
-        <button 
-          onClick={toggleAvailability}
-          className={`w-14 h-7 rounded-full transition-all relative border border-border-default ${available ? 'bg-status-safe' : 'bg-bg-card'}`}
-        >
-          <motion.div 
-            animate={{ x: available ? 28 : 0 }}
-            className="absolute top-0.5 left-0.5 w-5.5 h-5.5 bg-white rounded-full shadow-lg"
-          />
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => navigate('/')}
+            className="px-3 py-1 bg-white/5 border border-white/5 rounded-lg text-[9px] font-black uppercase tracking-widest text-text-tertiary hover:text-white transition-colors"
+          >
+            Exit
+          </button>
+          <button 
+            onClick={toggleAvailability}
+            className={`w-14 h-7 rounded-full transition-all relative border border-border-default ${available ? 'bg-status-safe' : 'bg-bg-card'}`}
+          >
+            <motion.div 
+              animate={{ x: available ? 28 : 0 }}
+              className="absolute top-0.5 left-0.5 w-5.5 h-5.5 bg-white rounded-full shadow-lg"
+            />
+          </button>
+        </div>
       </div>
 
       {/* Status Bento Grid */}
@@ -193,7 +215,10 @@ export default function ResponderHome() {
             </div>
             <span className="font-black text-sm text-text-primary tracking-tight">Deployment Map</span>
          </button>
-         <button className="bento-card bg-bg-elevated/40 p-6 flex flex-col gap-4 group hover:border-accent-orange/50 transition-all text-left">
+         <button 
+           onClick={() => alert("Performance Analytics module is restricted to agency supervisors. Please contact your administrator for access.")}
+           className="bento-card bg-bg-elevated/40 p-6 flex flex-col gap-4 group hover:border-accent-orange/50 transition-all text-left"
+         >
             <div className="w-12 h-12 bg-accent-orange/10 rounded-2xl flex items-center justify-center text-accent-orange group-hover:scale-110 transition-transform shadow-inner">
                <TrendingUp size={24} />
             </div>
@@ -346,7 +371,8 @@ export default function ResponderHome() {
              
              <div className="bento-card border-white/20 bg-black/30 backdrop-blur-3xl p-8 w-full max-w-sm mb-12 text-left space-y-6 relative z-10 shadow-3xl">
                 <div>
-                  <p className="text-[10px] font-black uppercase text-white/50 tracking-widest mb-2">Incident Location</p>
+                  <p className="text-[10px] font-black uppercase text-white/50 tracking-widest mb-2">Tactical Blueprint</p>
+                  <BlueprintView room={activeAlert.room} floor={String(activeAlert.floor)} className="w-full h-40 mb-4 rounded-xl" />
                   <p className="text-2xl font-black text-white tracking-tight leading-none uppercase">Hotel Grand Chennai</p>
                   <p className="text-md font-bold text-white/80 mt-1 uppercase tracking-tighter">LEVEL {activeAlert.floor} • SUITE {activeAlert.room}</p>
                 </div>
@@ -455,6 +481,15 @@ export default function ResponderHome() {
                   className="w-full py-5 bg-text-primary text-bg-base font-black text-sm tracking-[0.2em] uppercase rounded-3xl"
                 >
                   Close Profile
+                </button>
+                <button 
+                  onClick={async () => {
+                    await logout();
+                    navigate('/');
+                  }}
+                  className="w-full py-4 mt-2 bg-white/5 text-text-tertiary font-black text-[10px] uppercase tracking-widest rounded-2xl border border-white/5 hover:bg-status-critical/10 hover:text-status-critical transition-all"
+                >
+                  Log Out of Fleet
                 </button>
               </div>
             </motion.div>

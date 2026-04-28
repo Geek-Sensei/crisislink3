@@ -154,9 +154,10 @@ export default function ResponderAlert() {
   if (!alert) return null;
 
   return (
-    <div className="h-screen flex flex-col bg-bg-base overflow-hidden font-sans pb-24">
-      {/* Map Area - Tactical Bento style */}
-      <div className="flex-1 bg-[#080B14] relative overflow-hidden">
+    <div className="h-screen flex flex-col bg-bg-base overflow-hidden font-sans pb-24 items-center">
+      <div className="flex-1 w-full max-w-lg relative overflow-hidden flex flex-col">
+          {/* Map Area - Tactical Bento style */}
+          <div className="flex-1 bg-[#080B14] relative overflow-hidden">
          <RealTimeMap 
             center={[alert.hotelId?.lat || 12.9716, alert.hotelId?.lng || 77.5946]}
             hotel={alert.hotelId}
@@ -294,7 +295,10 @@ export default function ResponderAlert() {
                   </div>
                   <span className="text-[8px] font-black uppercase tracking-[0.2em] text-text-tertiary group-hover:text-text-primary">Tactical Bridge</span>
                </button>
-               <button className="bento-card bg-bg-elevated/40 border-border-default py-6 flex flex-col items-center gap-3 hover:border-accent-purple/30 group transition-all">
+               <button 
+                 onClick={() => alert(`ZONE INTEL: ${alert.aiClassification?.responderBriefing || "Clear floor immediately. Use North stairwell."}`)}
+                 className="bento-card bg-bg-elevated/40 border-border-default py-6 flex flex-col items-center gap-3 hover:border-accent-purple/30 group transition-all"
+               >
                   <div className="p-3 bg-accent-purple/10 rounded-2xl group-hover:scale-110 transition-transform">
                      <FileText className="text-accent-purple" size={24} />
                   </div>
@@ -416,6 +420,7 @@ export default function ResponderAlert() {
         )}
       </AnimatePresence>
       <MobileNav />
+    </div>
     </div>
   );
 }

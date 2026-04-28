@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../authContext';
-import { Shield, ArrowRight } from 'lucide-react';
+import { Shield, ArrowRight, ArrowLeft } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export default function GuestCheckin() {
@@ -15,7 +15,17 @@ export default function GuestCheckin() {
   });
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  useEffect(() => {
+    if (user && user.role === 'guest') {
+      setIsRedirecting(true);
+      navigate('/guest/home', { replace: true });
+    }
+  }, [user, navigate]);
+
+  if (isRedirecting) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,6 +72,13 @@ export default function GuestCheckin() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6">
+      <button 
+        onClick={() => navigate('/')}
+        className="fixed top-6 left-6 flex items-center gap-2 text-[#475569] hover:text-white transition-colors text-xs font-black uppercase tracking-widest"
+      >
+        <ArrowLeft size={16} /> Back to Home
+      </button>
+      
       <div className="mb-12 flex items-center gap-2">
         <Shield className="text-[#0EA5E9]" size={32} />
         <span className="text-2xl font-black tracking-tighter text-white">CrisisLink</span>

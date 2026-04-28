@@ -307,7 +307,9 @@ async function startServer() {
     
     const hotel = await Hotel.findById(alert?.hotelId);
     if (alert && hotel) {
-      io.to(`hotel-${hotel.hotelCode}`).emit("alert_updated", alert);
+      const payload = alert.toObject();
+      io.to(`hotel-${hotel.hotelCode}`).emit("alert_updated", payload);
+      io.to(`alert-${alert._id}`).emit("alert_updated", payload);
       // Start GPS Sim
       const { startGpsSimulation } = await import("./responderService.ts");
       startGpsSimulation(responderId, hotel, io);
@@ -319,7 +321,14 @@ async function startServer() {
     const alert = await Alert.findByIdAndUpdate(req.params.id, {
       status: 'on_scene',
       $push: { events: { time: new Date(), action: "Responder on scene", actor: "responder" } }
-    }, { new: true });
+    }, { new: true }).populate('hotelId').populate('responderId');
+    
+    if (alert) {
+      const hotel: any = alert.hotelId;
+      const payload = alert.toObject();
+      io.to(`hotel-${hotel.hotelCode}`).emit("alert_updated", payload);
+      io.to(`alert-${alert._id}`).emit("alert_updated", payload);
+    }
     res.json(alert);
   });
 
@@ -327,11 +336,14 @@ async function startServer() {
     const alert = await Alert.findByIdAndUpdate(req.params.id, {
       status: 'awaiting_safety_confirmation',
       $push: { events: { time: new Date(), action: "Issue resolved, awaiting guest safety confirmation", actor: "responder" } }
-    }, { new: true });
+    }, { new: true }).populate('hotelId').populate('responderId');
     
-    const hotel = await Hotel.findById(alert?.hotelId);
-    if (hotel) {
-      io.to(`hotel-${hotel.hotelCode}-floor-${alert?.floor}`).emit("safety_ping", { alertId: alert?._id });
+    if (alert) {
+      const hotel: any = alert.hotelId;
+      const payload = alert.toObject();
+      io.to(`hotel-${hotel.hotelCode}`).emit("alert_updated", payload);
+      io.to(`alert-${alert._id}`).emit("alert_updated", payload);
+      io.to(`hotel-${hotel.hotelCode}-floor-${alert.floor}`).emit("safety_ping", { alertId: alert._id });
     }
     res.json(alert);
   });
@@ -351,10 +363,15 @@ async function startServer() {
     }
     
     await alert.save();
-    const hotel = await Hotel.findById(alert.hotelId);
-    if (hotel) io.to(`hotel-${hotel.hotelCode}`).emit("alert_updated", alert);
+    const populated = await Alert.findById(alert._id).populate('hotelId').populate('responderId').populate('raisedBy');
+    const hotel: any = populated?.hotelId;
+    if (populated && hotel) {
+      const payload = populated.toObject();
+      io.to(`hotel-${hotel.hotelCode}`).emit("alert_updated", payload);
+      io.to(`alert-${alert._id}`).emit("alert_updated", payload);
+    }
     
-    res.json(alert);
+    res.json(populated);
   });
 
   app.post("/api/alerts/:id/report", async (req, res) => {

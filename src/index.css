@@ -28,10 +28,28 @@
   body {
     @apply bg-bg-base text-text-primary font-sans;
   }
+  
+  button, 
+  [role="button"],
+  .cursor-pointer,
+  [onClick],
+  a,
+  input[type="button"],
+  input[type="submit"],
+  label,
+  summary {
+    cursor: pointer !important;
+  }
+}
+
+svg [onClick], 
+svg [onMouseDown], 
+svg .cursor-pointer {
+  cursor: pointer !important;
 }
 
 .bento-grid {
-  @apply grid grid-cols-12 gap-6;
+  @apply grid grid-cols-1 lg:grid-cols-12 gap-6;
 }
 
 .bento-card {

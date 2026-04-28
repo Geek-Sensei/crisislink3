@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../authContext';
-import { Shield, Lock, User, AlertCircle } from 'lucide-react';
+import { Shield, Lock, User, AlertCircle, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function ResponderLogin() {
@@ -11,7 +11,17 @@ export default function ResponderLogin() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  useEffect(() => {
+    if (user && user.role === 'responder') {
+      setIsRedirecting(true);
+      navigate('/responder/home', { replace: true });
+    }
+  }, [user, navigate]);
+
+  if (isRedirecting) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,6 +40,13 @@ export default function ResponderLogin() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6">
+      <button 
+        onClick={() => navigate('/')}
+        className="fixed top-6 left-6 flex items-center gap-2 text-[#475569] hover:text-white transition-colors text-xs font-black uppercase tracking-widest"
+      >
+        <ArrowLeft size={16} /> Back to Home
+      </button>
+      
       <div className="mb-12 flex items-center gap-2">
         <Shield className="text-[#F97316]" size={32} />
         <span className="text-2xl font-black tracking-tighter text-white">CrisisLink <span className="text-[#F97316] text-sm">Responder</span></span>

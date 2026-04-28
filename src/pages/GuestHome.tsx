@@ -103,10 +103,10 @@ export default function GuestHome() {
   if (!user) return null;
 
   return (
-    <div className="h-screen flex flex-col bg-[#080B12] text-white overflow-hidden">
+    <div className="h-screen flex flex-col bg-[#080B12] text-white overflow-hidden items-center">
       
       {/* Content Area */}
-      <div className="flex-1 relative overflow-hidden pb-24">
+      <div className="flex-1 w-full max-w-md relative overflow-hidden pb-24">
         <AnimatePresence mode="wait">
           {activeTab === 'alerts' && (
             <motion.div 

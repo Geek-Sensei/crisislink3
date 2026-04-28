@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './authContext';
 import GuestCheckin from './pages/GuestCheckin';
+import LandingPage from './pages/LandingPage';
 import GuestHome from './pages/GuestHome';
 import GuestTrack from './pages/GuestTrack';
 import HotelLogin from './pages/HotelLogin';
@@ -11,32 +12,43 @@ import ResponderLogin from './pages/ResponderLogin';
 import ResponderHome from './pages/ResponderHome';
 import ResponderAlert from './pages/ResponderAlert';
 import ResponderMap from './pages/ResponderMap';
-import DevRoleSwitcher from './components/DevRoleSwitcher';
+import SystemNavigator from './components/SystemNavigator';
 
 function ProtectedRoute({ children, role }: { children: React.ReactNode, role: string }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="h-screen bg-[#080B12] flex items-center justify-center text-white">Loading...</div>;
+  if (loading) return (
+    <div className="h-screen bg-[#080B12] flex items-center justify-center">
+       <div className="w-12 h-12 border-4 border-accent-blue border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+  
   if (!user) {
     if (role === 'guest') return <Navigate to="/guest/checkin" />;
     if (role === 'hotel_staff') return <Navigate to="/hotel/login" />;
     if (role === 'responder') return <Navigate to="/responder/login" />;
     return <Navigate to="/" />;
   }
-  if (user.role !== role) {
-    // Correct redirection based on role
+
+  // DEMO MODE: Hotel staff and responders can cross-view everything for evaluation.
+  // Guests are restricted unless they are also staff.
+  const isAuthorized = user.role === role || user.role === 'hotel_staff';
+
+  if (!isAuthorized) {
+    // Correct redirection based on their actual role if they try to access unauthorized area
     if (user.role === 'guest') return <Navigate to="/guest/home" />;
     if (user.role === 'responder') return <Navigate to="/responder/home" />;
     if (user.role === 'hotel_staff') return <Navigate to="/hotel/dashboard" />;
     return <Navigate to="/" />;
   }
+
   return <>{children}</>;
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <div className="min-h-screen bg-[#080B12] text-[#F1F5F9] transition-colors duration-300">
-        <BrowserRouter>
+    <div className="min-h-screen bg-[#080B12] text-[#F1F5F9] transition-colors duration-300">
+      <BrowserRouter>
+        <AuthProvider>
           <Routes>
             {/* Guest Routes */}
             <Route path="/guest/checkin" element={<GuestCheckin />} />
@@ -83,11 +95,11 @@ export default function App() {
               </ProtectedRoute>
             } />
 
-            <Route path="/" element={<Navigate to="/guest/checkin" />} />
+            <Route path="/" element={<LandingPage />} />
           </Routes>
-          <DevRoleSwitcher />
-        </BrowserRouter>
-      </div>
-    </AuthProvider>
+          <SystemNavigator />
+        </AuthProvider>
+      </BrowserRouter>
+    </div>
   );
 }

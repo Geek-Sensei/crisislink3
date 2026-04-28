@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import ConferenceBridge from '../components/ConferenceBridge';
+import BlueprintView from '../components/BlueprintView';
 
 function DashboardView({ 
   user, 
@@ -48,239 +49,226 @@ function DashboardView({
   return (
     <>
       {/* Header Block */}
-      <header className="col-span-12 row-span-1 flex items-center justify-between mb-2">
-        <div className="flex items-center gap-4">
-           <div className="w-px h-12 bg-border-default md:block hidden" />
+      <header className="col-span-12 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 lg:mb-6">
+        <div className="flex items-center gap-3">
+           <div className="w-12 h-12 bg-accent-purple/10 rounded-2xl flex items-center justify-center text-accent-purple shrink-0">
+             <Shield size={24} />
+           </div>
            <div>
-             <h1 className="text-2xl font-black text-text-primary">
-               {user?.hotelId?.name} <span className="text-accent-purple text-sm ml-2 px-2 py-0.5 bg-accent-purple/10 rounded font-mono">#{user?.hotelId?.hotelCode}</span>
+             <h1 className="text-xl font-black text-text-primary flex items-center gap-2">
+               {user?.hotelId?.name} 
+               <span className="text-[10px] px-2 py-0.5 bg-bg-elevated rounded border border-white/5 font-mono text-text-tertiary">#{user?.hotelId?.hotelCode}</span>
              </h1>
              <div className="flex items-center gap-2">
-               <p className="text-text-secondary text-sm font-medium">BMS Operations Dashboard</p>
+               <p className="text-text-secondary text-xs font-bold">Grid Monitor</p>
                <span className="w-1 h-1 bg-text-tertiary rounded-full" />
                <p className="text-[10px] text-text-tertiary font-black uppercase tracking-widest flex items-center gap-1">
-                 <Clock size={10} /> Last Sync: {format(lastUpdate, 'HH:mm:ss')}
+                 <Clock size={10} /> {format(lastUpdate, 'HH:mm:ss')}
                </p>
              </div>
            </div>
         </div>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center bg-bg-elevated rounded-full px-4 py-2 border border-text-tertiary/20">
-            <span className="text-[10px] uppercase tracking-widest text-text-secondary mr-2 font-black">System Status:</span>
-            <span className="flex items-center text-status-safe font-black text-[10px] uppercase animate-pulse">
-              <span className="w-2 h-2 rounded-full bg-status-safe mr-2 shadow-[0_0_8px_var(--color-status-safe)]"></span> Monitoring
+        <div className="flex items-center gap-2">
+          <div className="hidden md:flex items-center bg-bg-card rounded-xl px-4 py-2 border border-white/5 mr-2">
+            <span className="flex items-center text-status-safe font-black text-[10px] uppercase">
+              <span className="w-2 h-2 rounded-full bg-status-safe mr-2 animate-pulse"></span> Protected
             </span>
           </div>
           <button 
             onClick={() => setShowBroadcast(true)}
-            className="bg-accent-blue text-white px-6 py-2.5 rounded-xl font-black shadow-lg shadow-accent-blue/20 flex items-center gap-2 hover:scale-[1.02] transition-transform"
+            className="flex-1 sm:flex-none bg-accent-blue/10 text-accent-blue border border-accent-blue/20 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-accent-blue hover:text-white transition-all"
           >
-            <Zap size={18} />
-            BROADCAST
+            Broadcast
           </button>
           <button 
             onClick={() => setShowRaiseEmergency(true)}
-            className="bg-status-critical text-white px-6 py-2.5 rounded-xl font-black shadow-lg shadow-status-critical/20 flex items-center gap-2 hover:scale-[1.02] transition-transform"
+            className="flex-1 sm:flex-none bg-status-critical text-white px-5 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-status-critical/20 hover:scale-105 transition-all"
           >
-            <AlertTriangle size={18} />
-            RAISE EMERGENCY
+            Emergency
           </button>
         </div>
       </header>
 
-      {/* Action/Metric Bento Blocks */}
-      <div className="col-span-8 row-span-3 bento-card flex flex-col">
-        <div className="bg-bg-card p-4 border-b border-border-default flex justify-between items-center">
+      {/* Main Incident Feed */}
+      <div className="lg:col-span-8 lg:row-span-4 bento-card flex flex-col">
+        <div className="bg-bg-card/50 p-4 border-b border-border-default flex justify-between items-center backdrop-blur-md sticky top-0 z-10">
           <div className="flex items-center gap-3">
-            <Target size={18} className="text-accent-purple" />
-            <h2 className="font-black text-xs uppercase tracking-widest text-text-secondary">Incident Response Monitor</h2>
+            <Activity size={18} className="text-accent-purple" />
+            <h2 className="font-black text-xs uppercase tracking-[0.2em] text-text-secondary">Incident Response Monitor</h2>
           </div>
-          <div className="flex items-center gap-2">
-             <span className="w-2 h-2 rounded-full bg-status-safe" />
-             <span className="text-[10px] font-black text-text-tertiary uppercase">Feed Active</span>
-          </div>
+          <span className="text-[10px] font-black text-status-safe uppercase tracking-tighter flex items-center gap-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-status-safe" /> Live System Feed
+          </span>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 custom-scrollbar min-h-[300px]">
           {alerts.filter((a: any) => a.status !== 'resolved').length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center opacity-30 p-12 text-center">
-              <Shield size={64} className="mb-6 text-text-tertiary" />
-              <p className="font-black text-xs uppercase tracking-[0.4em] text-text-tertiary">Grid monitoring: No active threats</p>
-              <div className="mt-4 flex gap-2">
-                 {Array.from({ length: 3 }).map((_, i) => <div key={i} className="w-1 h-1 bg-text-tertiary rounded-full animate-pulse" style={{ animationDelay: `${i * 200}ms` }} />)}
-              </div>
+              <Shield size={48} className="mb-4 text-text-tertiary" />
+              <p className="font-black text-[10px] uppercase tracking-[0.4em] text-text-tertiary">System Clear: No Active Threats</p>
             </div>
           ) : (
             alerts.filter((a: any) => a.status !== 'resolved').map((alert: any) => (
               <motion.div 
                 layoutId={alert._id}
                 key={alert._id} 
-                className="bg-bg-elevated/40 rounded-3xl border border-white/5 p-6 flex gap-6 hover:bg-bg-elevated/60 transition-all cursor-pointer group" 
+                className="bg-bg-elevated/40 rounded-[2rem] border border-white/5 p-5 flex gap-5 hover:bg-bg-elevated/60 transition-all cursor-pointer group relative overflow-hidden" 
                 onClick={() => setSelectedAlert(alert)}
               >
-                <div className="w-20 h-20 bg-bg-card rounded-2xl flex items-center justify-center text-4xl shrink-0 border border-white/5 shadow-inner relative">
+                <div className="w-16 h-16 bg-bg-card rounded-2xl flex items-center justify-center text-3xl shrink-0 border border-white/5 shadow-inner">
                   {alert.type === 'fire' ? '🔥' : alert.type === 'medical' ? '🚑' : '👮'}
-                  {alert.severity === 'critical' && (
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-status-critical rounded-full flex items-center justify-center text-white text-[10px] animate-bounce">!</div>
-                  )}
                 </div>
                 <div className="flex-1">
-                  <div className="flex justify-between items-start mb-3">
+                  <div className="flex justify-between items-start mb-2">
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={`text-[10px] font-black px-2 py-0.5 rounded uppercase ${
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className={`text-[9px] font-black px-2 py-0.5 rounded uppercase ${
                           alert.severity === 'critical' ? 'bg-status-critical text-white' : 'bg-status-high text-white'
                         }`}>{alert.severity}</span>
-                        <span className="text-[10px] font-mono text-text-tertiary uppercase tracking-widest">{format(new Date(alert.raisedAt), 'HH:mm:ss')}</span>
+                        <span className="text-[9px] font-mono text-text-tertiary uppercase">{format(new Date(alert.raisedAt), 'HH:mm:ss')}</span>
                       </div>
-                      <h3 className="font-black text-white text-lg tracking-tight">Floor {alert.floor}, Room {alert.room}</h3>
+                      <h3 className="font-black text-white text-base tracking-tight">Zone {alert.floor}-{alert.room}</h3>
                     </div>
                     <div className="text-right">
-                       <div className={`text-[10px] font-black uppercase px-3 py-1 rounded-full border mb-1 ${
+                       <div className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${
                          alert.status === 'on_scene' ? 'text-status-safe border-status-safe/20 bg-status-safe/5' : 'text-accent-orange border-accent-orange/20 bg-accent-orange/5'
                        }`}>
                          {alert.status.replace('_', ' ')}
                        </div>
-                       {alert.smsConfirmationCount > 0 && (
-                         <div className="mt-1 flex items-center justify-end gap-1 text-accent-blue font-black text-[9px] uppercase tracking-tighter">
-                           <Zap size={10} className="fill-current" /> {alert.smsConfirmationCount} SMS Broadcasted
-                         </div>
-                       )}
-                       <p className="text-[9px] text-text-tertiary font-bold uppercase">{alert.responderId ? 'Unit Active' : 'Dispatch Pending'}</p>
                     </div>
                   </div>
-                  <div className="bg-bg-card/50 p-4 rounded-2xl border border-white/5 text-xs italic text-text-secondary mb-4 leading-relaxed">
-                    "{alert.description}"
-                  </div>
+                  <p className="text-xs text-text-secondary line-clamp-1 mb-2">"{alert.description}"</p>
                   {alert.aiClassification && (
-                    <div className="bg-accent-purple/5 p-4 rounded-2xl border border-accent-purple/10 flex gap-4">
-                      <div className="bg-accent-purple text-white w-6 h-6 rounded-lg text-[10px] flex items-center justify-center font-black shrink-0 shadow-lg shadow-accent-purple/30">AI</div>
-                      <p className="text-[11px] text-text-secondary leading-normal font-medium">{alert.aiClassification.summary}</p>
+                    <div className="bg-accent-purple/5 px-3 py-2 rounded-xl border border-accent-purple/10 flex gap-2">
+                      <div className="text-accent-purple text-[8px] font-black uppercase shrink-0">AI Summary</div>
+                      <p className="text-[10px] text-text-secondary leading-tight opacity-80">{alert.aiClassification.summary}</p>
                     </div>
                   )}
                 </div>
-                <div className="flex flex-col gap-2 justify-center">
+                <div className="flex flex-col gap-2 justify-center ml-2 border-l border-white/5 pl-4">
                   <button 
                     onClick={(e) => { e.stopPropagation(); socket.emit('start_conference', { alertId: alert._id, initiatorRole: user.role, initiatorName: user.name }); }}
-                    className="p-3 bg-bg-card text-status-critical rounded-xl hover:bg-status-critical/10 transition-colors border border-status-critical/20"
-                    title="Tactical 3-Way Bridge"
+                    className="p-2 bg-status-critical/10 text-status-critical rounded-lg hover:bg-status-critical transition-colors hover:text-white"
                   >
-                    <Phone size={18} />
+                    <Phone size={14} />
                   </button>
-                  <button onClick={(e) => { e.stopPropagation(); generateReport(alert._id); }} className="p-3 bg-bg-card text-text-secondary rounded-xl hover:text-accent-purple transition-colors border border-border-default hover:bg-accent-purple/10"><FileText size={18} /></button>
-                  <button onClick={(e) => { e.stopPropagation(); setActiveTab('settings'); }} className="p-3 bg-bg-card text-text-secondary rounded-xl hover:text-accent-blue transition-colors border border-border-default hover:bg-accent-blue/10"><Settings size={18} /></button>
+                  <button onClick={(e) => { e.stopPropagation(); generateReport(alert._id); }} className="p-2 border border-white/5 text-text-tertiary rounded-lg hover:text-white transition-colors hover:bg-bg-card"><FileText size={14} /></button>
                 </div>
               </motion.div>
             ))
           )}
         </div>
         
-        <div className="p-4 bg-bg-elevated border-t border-border-default flex space-x-3">
-          <button onClick={() => setShowBroadcast(true)} className="flex-1 bg-accent-purple text-white py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg shadow-accent-purple/20 transition-all hover:brightness-110">Broadcast Protocol</button>
-          <button onClick={() => setActiveTab('alerts')} className="flex-1 border border-border-default text-text-primary py-2.5 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-white/5">Incident History</button>
+        <div className="p-3 bg-bg-elevated/20 border-t border-border-default flex gap-2">
+          <button onClick={() => setShowBroadcast(true)} className="flex-1 bg-white/[0.03] hover:bg-white/[0.08] text-text-secondary py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all">Protocol Override</button>
+          <button onClick={() => setActiveTab('alerts')} className="flex-1 bg-white/[0.03] hover:bg-white/[0.08] text-text-secondary py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all">Audit Logs</button>
         </div>
       </div>
 
-      {/* Sidebar Stats Bento Grid */}
-      <div className="col-span-4 row-span-1 bento-card p-4 flex items-center justify-between">
-        <div>
-          <p className="text-text-secondary text-[10px] font-black uppercase tracking-widest mb-1">Active Alerts</p>
-          <p className="text-3xl font-black text-status-critical leading-none">{stats.activeAlerts.toString().padStart(2, '0')}</p>
-        </div>
-        <div className="w-12 h-12 bg-status-critical/10 rounded-xl flex items-center justify-center text-status-critical">
-          <Bell size={24} />
-        </div>
-      </div>
-
-      <div className="col-span-4 row-span-1 bento-card p-4 flex items-center justify-between">
-        <div>
-          <p className="text-text-secondary text-[10px] font-black uppercase tracking-widest mb-1">Unconfirmed Safe</p>
-          <p className="text-3xl font-black text-status-high leading-none">{stats.unconfirmedSafe.toString().padStart(2, '0')}</p>
-        </div>
-        <div className="w-12 h-12 bg-status-high/10 rounded-xl flex items-center justify-center text-status-high">
-          <AlertTriangle size={24} />
-        </div>
-      </div>
-
-      <div className="col-span-4 row-span-3 bento-card p-6 flex flex-col">
-        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-text-tertiary mb-6 border-b border-border-default pb-3">Floor Safety Tracking</h3>
-        <div className="flex-1 space-y-4 overflow-y-auto pr-2 custom-scrollbar">
-          {stats.unconfirmedSafe === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center opacity-30 text-center">
-               <CheckCircle2 size={32} className="mb-2 text-status-safe" />
-               <p className="text-[10px] font-bold uppercase tracking-widest">All zones clear</p>
+      {/* Stats Cards - Grouped */}
+      <div className="lg:col-span-4 flex flex-col gap-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bento-card p-4 flex flex-col justify-between h-32">
+            <div className="flex justify-between items-start">
+               <span className="text-[9px] font-black uppercase tracking-widest text-text-tertiary">Critical</span>
+               <Bell size={14} className="text-status-critical" />
             </div>
-          ) : (
-            alerts.filter((a: any) => a.status === 'awaiting_safety_confirmation').map((a: any, i: number) => (
-              <div key={i} className="flex items-center justify-between bg-bg-elevated/50 p-2 rounded-xl">
-                <span className="text-xs text-text-secondary font-bold">Room {a.room}</span>
-                <span className="text-[10px] font-black px-2 py-1 bg-status-critical/10 text-status-critical rounded uppercase animate-pulse">Unconfirmed</span>
-              </div>
-            ))
-          )}
+            <div className="flex items-baseline gap-2">
+               <p className="text-4xl font-black text-white">{stats.activeAlerts.toString().padStart(2, '0')}</p>
+               <p className="text-[10px] font-bold text-text-tertiary uppercase">Active</p>
+            </div>
+          </div>
+          <div className="bento-card p-4 flex flex-col justify-between h-32">
+            <div className="flex justify-between items-start">
+               <span className="text-[9px] font-black uppercase tracking-widest text-text-tertiary">Security</span>
+               <AlertTriangle size={14} className="text-status-high" />
+            </div>
+            <div className="flex items-baseline gap-2">
+               <p className="text-4xl font-black text-white">{stats.unconfirmedSafe.toString().padStart(2, '0')}</p>
+               <p className="text-[10px] font-bold text-text-tertiary uppercase">Pending</p>
+            </div>
+          </div>
         </div>
-        <div className="mt-6 pt-4 border-t border-border-default text-center">
-           <button onClick={() => setActiveTab('files')} className="text-[10px] font-black text-accent-purple uppercase tracking-widest hover:underline">View Evacuation Plans</button>
-        </div>
-      </div>
 
-      <div className="col-span-4 row-span-2 bento-card p-5 flex flex-col">
-        <div className="flex justify-between items-center mb-5">
-          <h3 className="text-xs font-black uppercase tracking-widest text-text-tertiary">Unit Dispatch</h3>
-          <span className="text-[10px] bg-status-safe/10 text-status-safe px-2 py-0.5 rounded font-black">Active: {responders.filter((r: any) => r.available).length}</span>
-        </div>
-        <div className="space-y-3 overflow-y-auto custom-scrollbar flex-1 pr-2">
-           {responders.map((r: any, i: number) => (
-             <div key={i} className={`flex items-center p-3 rounded-xl border transition-all ${
-               r.available ? 'bg-bg-elevated border-accent-purple/10' : 'bg-bg-elevated/40 border-transparent opacity-60'
-             }`}>
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black text-white shrink-0 ${
-                  r.responderType === 'fire' ? 'bg-status-critical' : r.responderType === 'medical' ? 'bg-accent-blue' : 'bg-accent-orange'
-                }`}>
-                  {r.responderType?.substring(0, 2).toUpperCase() || 'UN'}
-                </div>
-                <div className="ml-3 flex-1">
-                   <p className="text-xs font-black text-white">{r.name}</p>
-                   <p className="text-[8px] text-text-tertiary font-bold uppercase tracking-tighter mb-1">
-                     {r.agency} • Score: {(r.reliabilityScore * 100).toFixed(0)}%
-                     {r.eta && <span className="text-accent-orange ml-2 animate-pulse font-black">Approaching: {r.eta}</span>}
+        {/* Floor Tracking & Unit Status Tabs */}
+        <div className="bento-card flex-1 flex flex-col min-h-[500px]">
+          <div className="flex border-b border-border-default">
+            <button 
+              className="flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-text-tertiary hover:text-white border-b-2 border-transparent"
+              style={{ color: 'var(--color-text-primary)', borderBottomColor: 'var(--color-accent-purple)' }}
+            >
+              Operations
+            </button>
+          </div>
+          
+          <div className="p-5 flex-1 overflow-y-auto custom-scrollbar space-y-6">
+            {/* Safety Segment */}
+            <div>
+              <h3 className="text-[8px] font-black uppercase tracking-[0.3em] text-text-tertiary mb-3 flex items-center gap-2">
+                <Users size={10} /> Zone Status (Non-Compliant)
+              </h3>
+              <div className="space-y-2">
+                {stats.unconfirmedSafe === 0 ? (
+                  <p className="text-[9px] text-text-tertiary italic text-center py-4 bg-bg-elevated/20 rounded-xl">All zones verified safe</p>
+                ) : (
+                  alerts.filter((a: any) => a.status === 'awaiting_safety_confirmation').map((a: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between bg-bg-elevated/40 p-3 rounded-xl border border-white/5">
+                      <span className="text-[10px] text-text-primary font-bold">Room {a.room}</span>
+                      <span className="text-[8px] font-black px-2 py-0.5 bg-status-critical/10 text-status-critical rounded border border-status-critical/20">WAITING</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Responder Segment */}
+            <div>
+              <h3 className="text-[8px] font-black uppercase tracking-[0.3em] text-text-tertiary mb-3 flex items-center gap-2">
+                <Shield size={10} /> Unit Deployment
+              </h3>
+              <div className="space-y-2">
+                {responders.slice(0, 4).map((r: any, i: number) => (
+                  <div key={i} className={`flex items-center p-3 rounded-xl border transition-all ${
+                    r.available ? 'bg-bg-elevated border-accent-purple/10' : 'bg-bg-elevated/20 border-transparent opacity-40'
+                  }`}>
+                    <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[8px] font-black text-white shrink-0 ${
+                      r.responderType === 'fire' ? 'bg-status-critical' : r.responderType === 'medical' ? 'bg-accent-blue' : 'bg-accent-orange'
+                    }`}>
+                      {r.name.charAt(0)}
+                    </div>
+                    <div className="ml-3 flex-1 overflow-hidden">
+                       <p className="text-[10px] font-bold text-white truncate">{r.name}</p>
+                       <p className="text-[8px] text-text-tertiary uppercase truncate">{r.agency}</p>
+                    </div>
+                    {r.available && <div className="w-1.5 h-1.5 rounded-full bg-status-safe shadow-[0_0_8px_var(--color-status-safe)]" />}
+                  </div>
+                ))}
+              </div>
+              <button 
+                onClick={() => setActiveTab('responders')}
+                className="w-full mt-4 py-2 border border-white/5 rounded-lg text-[8px] font-black text-text-tertiary uppercase tracking-widest hover:border-accent-purple hover:text-accent-purple transition-all"
+              >
+                Expand Fleet Monitor
+              </button>
+            </div>
+
+            {/* Tactical Intel Integration (Sel 3) */}
+            {selectedAlert && (
+              <div className="pt-4 border-t border-border-default/50">
+                <h3 className="text-[8px] font-black uppercase tracking-[0.3em] text-text-tertiary mb-3">Zone Intelligence</h3>
+                <BlueprintView room={selectedAlert.room} floor={String(selectedAlert.floor)} className="w-full h-32 rounded-xl mb-3" />
+                <div className="bg-bg-card p-3 rounded-xl border border-white/5">
+                   <p className="text-[8px] font-black text-accent-purple uppercase mb-1">Latest Telemetry</p>
+                   <p className="text-[10px] text-text-secondary leading-normal">
+                      {selectedAlert.events?.[selectedAlert.events.length-1]?.action || "Monitoring active..."}
                    </p>
-                   <a href={`tel:${r.phone}`} className="text-[8px] font-black text-accent-purple uppercase tracking-widest hover:underline">
-                      Call Dispatch: {r.phone}
-                   </a>
                 </div>
-                <div className={`text-[9px] font-black px-2 py-1 rounded-md ${
-                  r.available ? 'text-status-safe border border-status-safe/20' : 'text-text-tertiary border border-border-default'
-                }`}>
-                  {r.available ? 'ONLINE' : 'OFFLINE'}
-                </div>
-             </div>
-           ))}
-        </div>
-        <div className="mt-4">
-           <button onClick={() => setActiveTab('responders')} className="w-full text-[10px] font-black text-text-tertiary uppercase tracking-widest hover:text-white transition-colors">Manage Fleet</button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Timeline Bento */}
-      <div className="col-span-4 row-span-2 bento-card p-5 flex flex-col">
-        <h3 className="text-xs font-black uppercase tracking-widest text-text-tertiary mb-5">Incident Feed</h3>
-        <div className="space-y-4 flex-1 overflow-y-auto custom-scrollbar pr-2">
-          {selectedAlert ? (selectedAlert.events || []).map((e: any, idx: number) => (
-            <div key={idx} className="flex gap-4">
-              <div className="w-0.5 bg-bg-elevated relative shrink-0">
-                <div className="absolute top-0 -left-[3px] w-2 h-2 rounded-full bg-accent-purple shadow-[0_0_8px_var(--color-accent-purple)]"></div>
-              </div>
-              <div className="text-[10px]">
-                <p className="text-text-primary font-black uppercase mb-0.5">{format(new Date(e.time), 'HH:mm')} — {e.action}</p>
-                <p className="text-text-tertiary font-bold">{e.actor}</p>
-              </div>
-            </div>
-          )) : (
-            <p className="text-[10px] text-text-tertiary italic text-center py-4">Select an incident to view timeline</p>
-          )}
-        </div>
-      </div>
     </>
   );
 }
@@ -465,11 +453,19 @@ export default function HotelDashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-bg-base">
-      {/* Sidebar - Slim Bento Style */}
-      <nav className="w-20 bg-bg-card border-r border-border-default flex flex-col items-center py-8 space-y-8">
-        <div className="w-10 h-10 bg-accent-purple rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-accent-purple/20 cursor-pointer" onClick={() => setActiveTab('dashboard')}>CL</div>
-        <div className="flex flex-col space-y-6">
+    <div className="flex flex-col lg:flex-row h-screen bg-bg-base overflow-hidden">
+      {/* Sidebar - Slim Bento Style - Adaptive */}
+      <nav className="fixed bottom-0 left-0 right-0 lg:relative lg:bottom-auto lg:left-auto lg:right-auto lg:w-20 bg-bg-card border-t lg:border-t-0 lg:border-r border-border-default flex lg:flex-col items-center py-4 lg:py-8 justify-around lg:justify-start lg:space-y-8 z-50">
+        <div 
+          className="w-10 h-10 bg-accent-purple rounded-xl hidden lg:flex items-center justify-center text-white font-black shadow-lg shadow-accent-purple/20 cursor-pointer group relative" 
+          onClick={() => navigate('/')}
+        >
+          CL
+          <div className="absolute left-full ml-4 px-2 py-1 bg-bg-card border border-white/10 rounded text-[8px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-[100]">
+            Exit to Gateway
+          </div>
+        </div>
+        <div className="flex lg:flex-col items-center justify-around w-full lg:w-auto lg:space-y-6">
           {[
             { id: 'dashboard', icon: Activity, active: activeTab === 'dashboard' },
             { id: 'alerts', icon: Bell, badge: stats.activeAlerts, active: activeTab === 'alerts' },
@@ -479,20 +475,20 @@ export default function HotelDashboard() {
             { id: 'settings', icon: Settings, active: activeTab === 'settings' }
           ].map((item, idx) => (
             <div key={idx} className="relative group cursor-pointer" onClick={() => item.id === 'settings' ? navigate('/hotel/settings') : setActiveTab(item.id)}>
-              <div className={`p-3 rounded-xl transition-all ${
+              <div className={`p-2.5 lg:p-3 rounded-xl transition-all ${
                 item.active ? 'bg-bg-elevated text-accent-purple' : 'text-text-tertiary hover:bg-white/5 hover:text-text-secondary'
               }`}>
-                <item.icon size={24} />
+                <item.icon size={20} className="lg:w-6 lg:h-6" />
               </div>
               {item.badge ? (
-                <span className="absolute -top-1 -right-1 bg-status-critical text-white text-[10px] px-1.5 py-0.5 rounded-full font-black min-w-[18px] text-center border-2 border-bg-card">
+                <span className="absolute -top-1 -right-1 bg-status-critical text-white text-[8px] lg:text-[10px] px-1.5 py-0.5 rounded-full font-black min-w-[18px] text-center border-2 border-bg-card">
                   {item.badge}
                 </span>
               ) : null}
             </div>
           ))}
         </div>
-        <div className="mt-auto">
+        <div className="mt-auto hidden lg:block">
           <div className="w-10 h-10 rounded-full border-2 border-border-default bg-text-tertiary overflow-hidden"></div>
         </div>
       </nav>
@@ -507,28 +503,28 @@ export default function HotelDashboard() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[200] bg-bg-base flex flex-col overflow-hidden"
           >
-            <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[300] bg-bg-card/80 backdrop-blur-xl border border-border-default rounded-full p-1 flex items-center shadow-2xl">
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[300] bg-bg-card/80 backdrop-blur-xl border border-border-default rounded-full p-1 flex items-center shadow-2xl max-w-[90vw]">
                <button 
                  onClick={() => setMapMode('world')}
-                 className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${mapMode === 'world' ? 'bg-accent-blue text-white shadow-lg' : 'text-text-tertiary hover:text-text-secondary'}`}
+                 className={`px-4 lg:px-6 py-2 rounded-full text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all ${mapMode === 'world' ? 'bg-accent-blue text-white shadow-lg' : 'text-text-tertiary hover:text-text-secondary'}`}
                >
-                 World Situational
+                 World
                </button>
                <button 
                  onClick={() => setMapMode('tactical')}
-                 className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${mapMode === 'tactical' ? 'bg-accent-purple text-white shadow-lg' : 'text-text-tertiary hover:text-text-secondary'}`}
+                 className={`px-4 lg:px-6 py-2 rounded-full text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all ${mapMode === 'tactical' ? 'bg-accent-purple text-white shadow-lg' : 'text-text-tertiary hover:text-text-secondary'}`}
                >
-                 Tactical Floor Plan
+                 Tactical
                </button>
             </div>
 
             {mapMode === 'tactical' ? (
               <TacticalMap alerts={alerts} responders={responders} onClose={() => setActiveTab('dashboard')} />
             ) : (
-              <div className="w-full h-full p-4 md:p-10 pt-24 bg-bg-base relative">
+              <div className="w-full h-full p-4 lg:p-10 pt-24 bg-bg-base relative">
                  <div className="absolute top-8 right-8 z-[300]">
-                    <button onClick={() => setActiveTab('dashboard')} className="w-12 h-12 bg-bg-card border border-border-default rounded-full flex items-center justify-center text-text-tertiary hover:text-text-primary shadow-2xl">
-                       <X size={24} />
+                    <button onClick={() => setActiveTab('dashboard')} className="w-10 h-10 lg:w-12 lg:h-12 bg-bg-card border border-border-default rounded-full flex items-center justify-center text-text-tertiary hover:text-text-primary shadow-2xl">
+                       <X size={20} className="lg:w-6 lg:h-6" />
                     </button>
                  </div>
                  <RealTimeMap 
@@ -545,7 +541,8 @@ export default function HotelDashboard() {
       </AnimatePresence>
 
       {/* Main Content Area */}
-      <main className="flex-1 p-8 overflow-y-auto custom-scrollbar h-full">
+      <main className="flex-1 p-4 lg:p-8 overflow-y-auto custom-scrollbar h-full pb-24 lg:pb-8">
+
         <AnimatePresence mode="wait">
           {activeTab === 'dashboard' && (
             <motion.div 
@@ -553,7 +550,7 @@ export default function HotelDashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="bento-grid grid-rows-6 h-full"
+              className="bento-grid grid-rows-none lg:grid-rows-6 h-full"
             >
               <DashboardView 
                 user={user} 
